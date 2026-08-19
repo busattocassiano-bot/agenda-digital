@@ -11,6 +11,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { useAppData } from '../context/AppDataContext';
 import { checkOverlapsAndCapacity } from '../utils/agendamentoUtils';
+import AvaliacaoWizardModal from '../components/AvaliacaoWizardModal';
 
 export default function Agenda() {
   const { 
@@ -29,6 +30,7 @@ export default function Agenda() {
   const [eventMenuOpen, setEventMenuOpen] = useState(false);
   const [selectedAgendamento, setSelectedAgendamento] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [wizardOpen, setWizardOpen] = useState(false);
   
   // Agendamento form states
   const [tipoAgendamento, setTipoAgendamento] = useState('Normal');
@@ -308,11 +310,26 @@ export default function Agenda() {
                     <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, marginBottom: '4px' }}>{feriado.descricao}</div>
                   )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {dayAgendamentos.slice(0, 3).map(a => (
-                      <div key={a.id} onClick={(e) => handleEventClick(e, a)} style={{ fontSize: '0.75rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 4px', borderRadius: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {dayAgendamentos.slice(0, 3).map(a => {
+                      const srv = servicos.find(s => s.id === a.servicoId);
+                      const baseColor = srv?.cor || '#0ea5e9';
+                      
+                      return (
+                      <div key={a.id} onClick={(e) => handleEventClick(e, a)} style={{ 
+                        fontSize: '0.75rem', 
+                        background: baseColor + '20', 
+                        color: baseColor, 
+                        borderLeft: `3px solid ${baseColor}`,
+                        padding: '2px 4px', 
+                        borderRadius: '4px', 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        fontWeight: 600
+                      }}>
                         {a.hora} - {a.nomePacienteNovo || pacientes.find(p=>p.id===a.clienteId)?.nome}
                       </div>
-                    ))}
+                    )})}
                     {dayAgendamentos.length > 3 && (
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>+ {dayAgendamentos.length - 3} agendamentos</div>
                     )}
@@ -378,12 +395,16 @@ export default function Agenda() {
                              FERIADO:<br/>{feriado.descricao}
                            </div>
                         )}
-                        {!feriado && slotAgendamentos.map(a => (
+                        {!feriado && slotAgendamentos.map(a => {
+                            const srv = servicos.find(s => s.id === a.servicoId);
+                            const baseColor = srv?.cor || '#0ea5e9';
+                            
+                            return (
                             <div key={a.id} 
                                 onClick={(e) => handleEventClick(e, a)}
                                 style={{
-                                    background: '#e0f2fe',
-                                    borderLeft: '4px solid #0284c7',
+                                    background: baseColor + '20',
+                                    borderLeft: `4px solid ${baseColor}`,
                                     borderRadius: '4px',
                                     padding: '6px',
                                     marginBottom: '4px',
@@ -391,17 +412,17 @@ export default function Agenda() {
                                     textAlign: 'left',
                                     cursor: 'pointer',
                                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                    color: '#0369a1'
+                                    color: baseColor
                                 }}
                             >
                                 <div style={{ fontWeight: 600, marginBottom: '2px' }}>
                                   {a.nomePacienteNovo || pacientes.find(p => p.id === a.clienteId)?.nome || 'Sem Nome'}
                                 </div>
-                                <div style={{ fontSize: '0.7rem', color: '#0284c7' }}>
-                                  {servicos.find(s => s.id === a.servicoId)?.nome || 'Serviço'}
+                                <div style={{ fontSize: '0.7rem', color: baseColor, opacity: 0.8 }}>
+                                  {srv?.nome || 'Serviço'}
                                 </div>
                             </div>
-                        ))}
+                        )})}
                       </td>
                     );
                   })}
@@ -446,6 +467,15 @@ export default function Agenda() {
               <button className="dropdown-item" onClick={() => alert("Acesso ao prontuário será aberto em breve.")} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: 'var(--text-main)' }}>
                 <User size={16} /> Ver Prontuário
               </button>
+
+              {(!selectedAgendamento.clienteId || selectedAgendamento.nomePacienteNovo) && (
+                  <button className="dropdown-item" onClick={() => {
+                      setEventMenuOpen(false);
+                      setWizardOpen(true);
+                  }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#0284c7' }}>
+                    <FileEdit size={16} /> Iniciar Avaliação
+                  </button>
+              )}
 
               <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }}></div>
 
@@ -562,6 +592,17 @@ export default function Agenda() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Avaliacao Wizard Modal */}
+      {wizardOpen && selectedAgendamento && (
+          <AvaliacaoWizardModal
+              isOpen={wizardOpen}
+              onClose={() => setWizardOpen(false)}
+              agendamentoId={selectedAgendamento.id}
+              initialNome={selectedAgendamento.nomePacienteNovo || ''}
+              initialTelefone={selectedAgendamento.telefonePacienteNovo || ''}
+          />
       )}
 
     </div>
