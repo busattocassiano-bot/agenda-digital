@@ -333,7 +333,7 @@ export default function Agenda() {
                     borderRight: '1px solid var(--border-color)', 
                     borderBottom: '1px solid var(--border-color)', 
                     padding: '8px',
-                    background: feriado ? '#fee2e2' : (!isSameMonth(day, currentDate) ? '#f8fafc' : 'white'),
+                    background: !isSameMonth(day, currentDate) ? '#f8fafc' : 'white',
                     cursor: feriado ? 'not-allowed' : 'pointer',
                     minHeight: '100px'
                   }}>
@@ -384,7 +384,9 @@ export default function Agenda() {
             <thead style={{ position: 'sticky', top: 0, background: 'white', zIndex: 10, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
               <tr>
                 <th style={{ width: '80px', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '16px 8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Hora</th>
-                {days.map((day, idx) => (
+                {days.map((day, idx) => {
+                  const feriado = isFeriado(day);
+                  return (
                   <th key={idx} style={{ 
                     borderRight: '1px solid var(--border-color)', 
                     borderBottom: '1px solid var(--border-color)', 
@@ -392,10 +394,13 @@ export default function Agenda() {
                     background: isSameDay(day, new Date()) ? '#f8fafc' : 'white',
                     width: `calc(100% / ${days.length})`
                   }}>
-                    <div style={{ fontWeight: 600, color: 'var(--text-dark)', fontSize: '0.95rem' }}>{format(day, 'EEEE', { locale: ptBR }).split('-')[0]}</div>
-                    <div style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.85rem' }}>{format(day, 'dd/MMM.', { locale: ptBR })}</div>
+                    <div style={{ fontWeight: 600, color: feriado ? '#ef4444' : 'var(--text-dark)', fontSize: '0.95rem' }}>{format(day, 'EEEE', { locale: ptBR }).split('-')[0]}</div>
+                    <div style={{ fontWeight: 400, color: feriado ? '#f87171' : 'var(--text-muted)', fontSize: '0.85rem' }}>{format(day, 'dd/MMM.', { locale: ptBR })}</div>
+                    {feriado && (
+                      <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700, marginTop: '4px' }}>{feriado.descricao}</div>
+                    )}
                   </th>
-                ))}
+                )})}
               </tr>
             </thead>
             <tbody>
@@ -422,18 +427,13 @@ export default function Agenda() {
                           borderRight: '1px solid var(--border-color)', 
                           borderBottom: '1px solid var(--border-color)', 
                           height: '60px',
-                          background: feriado ? '#fee2e2' : (isSameDay(day, new Date()) ? '#f8fafc' : 'white'),
+                          background: isSameDay(day, new Date()) ? '#f8fafc' : 'white',
                           cursor: feriado ? 'not-allowed' : 'pointer',
                           verticalAlign: 'top',
                           padding: '4px'
                         }}
                         onClick={() => handleOpenSlot(day, time)}
                       >
-                        {feriado && idx === 0 && (
-                           <div style={{ color: '#ef4444', fontWeight: 600, fontSize: '0.8rem', marginTop: '16px' }}>
-                             FERIADO:<br/>{feriado.descricao}
-                           </div>
-                        )}
                         {!feriado && slotAgendamentos.map(a => {
                             const srv = servicos.find(s => s.id === a.servicoId);
                             const baseColor = srv?.cor || '#0ea5e9';
