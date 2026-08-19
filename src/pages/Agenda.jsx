@@ -499,7 +499,7 @@ export default function Agenda() {
             
             <div style={{ padding: '8px' }}>
               <button className="dropdown-item" onClick={() => handleUpdateStatus('Realizado')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#16a34a' }}>
-                <CheckCircle2 size={16} /> {servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') ? 'Confirmar Presença' : 'Marcar como Realizado'}
+                <CheckCircle2 size={16} /> Confirmar Presença
               </button>
               <button className="dropdown-item" onClick={() => handleUpdateStatus('Falta')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#ea580c' }}>
                 <XCircle size={16} /> Marcar como Falta
@@ -508,8 +508,13 @@ export default function Agenda() {
               <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }}></div>
               
               {!servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') && (
-                <button className="dropdown-item" onClick={() => alert("Acesso ao prontuário será aberto em breve.")} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: 'var(--text-main)' }}>
-                  <User size={16} /> Ver Prontuário
+                <button className="dropdown-item" onClick={() => {
+                  setDataInicio(selectedAgendamento.data || format(new Date(), 'yyyy-MM-dd'));
+                  if (selectedAgendamento.clienteId) setClienteId(selectedAgendamento.clienteId);
+                  setAgendamentoModalOpen(true);
+                  setEventMenuOpen(false);
+                }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: 'var(--text-main)' }}>
+                  <Plus size={16} /> Novo Agendamento
                 </button>
               )}
 
