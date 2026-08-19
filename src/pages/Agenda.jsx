@@ -513,12 +513,12 @@ export default function Agenda() {
                 </button>
               )}
 
-              {(!selectedAgendamento.clienteId || selectedAgendamento.nomePacienteNovo) && (
+              {servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') && (
                   <button className="dropdown-item" onClick={() => {
                       setEventMenuOpen(false);
                       setWizardOpen(true);
                   }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#0284c7' }}>
-                    <FileEdit size={16} /> Iniciar avaliação completa
+                    <FileEdit size={16} /> {(!selectedAgendamento.clienteId || selectedAgendamento.nomePacienteNovo) ? 'Iniciar avaliação completa' : 'Nova Avaliação'}
                   </button>
               )}
 
@@ -649,6 +649,7 @@ export default function Agenda() {
               agendamentoId={selectedAgendamento.id}
               initialNome={selectedAgendamento.nomePacienteNovo || ''}
               initialTelefone={selectedAgendamento.telefonePacienteNovo || ''}
+              clienteId={selectedAgendamento.clienteId}
           />
       )}
 
