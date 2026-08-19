@@ -33,6 +33,8 @@ export default function Agenda() {
   const [selectedAgendamento, setSelectedAgendamento] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [evolucaoAgendamento, setEvolucaoAgendamento] = useState(null);
+  const [evolucaoText, setEvolucaoText] = useState('');
   
   // Agendamento form states
   const [tipoAgendamento, setTipoAgendamento] = useState('Normal');
@@ -247,9 +249,39 @@ export default function Agenda() {
   const handleUpdateStatus = (newStatus) => {
     if (selectedAgendamento) {
       updateAgendamento(selectedAgendamento.id, { status: newStatus });
+      
+      if (newStatus === 'Realizado') {
+        setEvolucaoAgendamento(selectedAgendamento);
+        setEvolucaoText('');
+      } else {
+        setSelectedAgendamento(null);
+      }
       setEventMenuOpen(false);
-      setSelectedAgendamento(null);
     }
+  };
+  
+  const handleSaveEvolucao = () => {
+    if (!evolucaoText.trim() || !evolucaoAgendamento) {
+      setEvolucaoAgendamento(null);
+      setSelectedAgendamento(null);
+      return;
+    }
+    const a = evolucaoAgendamento;
+    const cli = pacientes.find(p => p.id === a.clienteId);
+    const prof = profissionais.find(p => p.id === a.profissionalId);
+    addEvolucao({
+      idAgendamento: a.id,
+      clienteId: a.clienteId,
+      clienteNome: cli ? cli.nome : a.nomePacienteNovo,
+      profissionalId: a.profissionalId,
+      profissionalNome: prof ? prof.nome : 'Profissional',
+      registro: prof ? prof.registro : '',
+      data: a.data.split('-').reverse().join('/'),
+      descricao: evolucaoText,
+      status: 'Presença'
+    });
+    setEvolucaoAgendamento(null);
+    setSelectedAgendamento(null);
   };
 
   const isFeriado = (date) => {
@@ -656,6 +688,35 @@ export default function Agenda() {
           />
       )}
 
+
+      {evolucaoAgendamento && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-content" style={{ background: 'white', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-dark)' }}>Evolução do Paciente</h2>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '4px' }}>
+                  {pacientes.find(p => p.id === evolucaoAgendamento.clienteId)?.nome || evolucaoAgendamento.nomePacienteNovo}
+                </div>
+              </div>
+              <button onClick={() => { setEvolucaoAgendamento(null); setSelectedAgendamento(null); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            
+            <textarea 
+              autoFocus
+              placeholder="Digite a evolução da sessão..." 
+              value={evolucaoText} 
+              onChange={(e) => setEvolucaoText(e.target.value)}
+              style={{ width: '100%', height: '150px', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '8px', resize: 'none', outline: 'none', color: 'var(--text-main)' }} 
+            />
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button onClick={() => { setEvolucaoAgendamento(null); setSelectedAgendamento(null); }} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'white', cursor: 'pointer', fontWeight: 500 }}>Pular</button>
+              <button onClick={handleSaveEvolucao} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'var(--primary-color)', color: 'white', fontWeight: 600, cursor: 'pointer' }}>Salvar Evolução</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
