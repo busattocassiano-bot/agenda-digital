@@ -228,7 +228,7 @@ export default function Agenda() {
         addRecebimento({
             id: Date.now().toString(),
             dataEmissao: format(new Date(), 'yyyy-MM-dd'),
-            dataVencimento: format(setHours(new Date(dataInicio), 0), 'yyyy-MM') + '-' + diaVencimento.toString().padStart(2, '0'),
+            dataVencimento: dataInicio,
             clienteId: isPacienteNaoCadastrado ? null : clienteId,
             valor: parseFloat(valorAvulso) || 0,
             status: 'Pendente',
@@ -628,10 +628,6 @@ export default function Agenda() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Valor (R$):</span>
                             <input type="number" step="0.01" value={valorAvulso} onChange={(e) => setValorAvulso(e.target.value)} style={{ width: '80px', padding: '6px 8px', border: '1px solid var(--border-color)', borderRadius: '6px' }} />
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Vencimento (Dia):</span>
-                            <input type="number" min="1" max="31" value={diaVencimento} onChange={(e) => setDiaVencimento(e.target.value)} style={{ width: '60px', padding: '6px 8px', border: '1px solid var(--border-color)', borderRadius: '6px' }} />
                         </div>
                     </div>
                 )}
