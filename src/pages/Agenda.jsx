@@ -281,27 +281,21 @@ export default function Agenda() {
           </div>
         </div>
 
-        <div className="flex-between">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <div style={{ fontWeight: 600, color: 'var(--text-dark)', fontSize: '1.1rem' }}>
-              {calendarView === 'mes' ? (
-                format(currentDate, "MMMM yyyy", { locale: ptBR }).toUpperCase()
-              ) : calendarView === 'dia' ? (
-                format(currentDate, "EEEE, d 'de' MMMM", { locale: ptBR })
-              ) : (
-                `De ${format(days[0], "d/MMM.", { locale: ptBR })} a ${format(days[days.length-1], "d/MMM./yyyy", { locale: ptBR })}`
-              )}
-            </div>
-            <select className="form-control" style={{ width: '200px', padding: '8px 12px' }} value={selectedProfissional} onChange={e => setSelectedProfissional(e.target.value)}>
-              <option value="">Todos os Profissionais</option>
-              {profissionais.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
-            </select>
-          </div>
-
+                <div className="flex-between" style={{ justifyContent: 'flex-end' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button onClick={goToday} style={{ padding: '8px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'white', cursor: 'pointer', fontWeight: 600, color: 'var(--text-dark)' }}>Hoje</button>
+            
             <div style={{ display: 'flex', alignItems: 'center', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
               <button onClick={prevDate} style={{ padding: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}><ChevronLeft size={18} /></button>
-              <button onClick={goToday} style={{ padding: '8px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontWeight: 600, color: 'var(--primary-color)' }}>Hoje</button>
+              <div style={{ padding: '8px 16px', fontWeight: 600, color: 'var(--text-dark)', fontSize: '1rem', minWidth: '180px', textAlign: 'center' }}>
+                {calendarView === 'mes' ? (
+                  format(currentDate, "MMMM yyyy", { locale: ptBR }).toUpperCase()
+                ) : calendarView === 'dia' ? (
+                  format(currentDate, "d 'de' MMMM", { locale: ptBR })
+                ) : (
+                  `De ${format(days[0], "d/MMM.", { locale: ptBR })} a ${format(days[days.length-1], "d/MMM./yyyy", { locale: ptBR })}`
+                )}
+              </div>
               <button onClick={nextDate} style={{ padding: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}><ChevronRight size={18} /></button>
             </div>
 
