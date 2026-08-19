@@ -499,7 +499,7 @@ export default function Agenda() {
             
             <div style={{ padding: '8px' }}>
               <button className="dropdown-item" onClick={() => handleUpdateStatus('Realizado')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#16a34a' }}>
-                <CheckCircle2 size={16} /> Marcar como Realizado
+                <CheckCircle2 size={16} /> {servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') ? 'Confirmar Presença' : 'Marcar como Realizado'}
               </button>
               <button className="dropdown-item" onClick={() => handleUpdateStatus('Falta')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#ea580c' }}>
                 <XCircle size={16} /> Marcar como Falta
@@ -507,16 +507,18 @@ export default function Agenda() {
               
               <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }}></div>
               
-              <button className="dropdown-item" onClick={() => alert("Acesso ao prontuário será aberto em breve.")} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: 'var(--text-main)' }}>
-                <User size={16} /> Ver Prontuário
-              </button>
+              {!servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') && (
+                <button className="dropdown-item" onClick={() => alert("Acesso ao prontuário será aberto em breve.")} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: 'var(--text-main)' }}>
+                  <User size={16} /> Ver Prontuário
+                </button>
+              )}
 
               {(!selectedAgendamento.clienteId || selectedAgendamento.nomePacienteNovo) && (
                   <button className="dropdown-item" onClick={() => {
                       setEventMenuOpen(false);
                       setWizardOpen(true);
                   }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#0284c7' }}>
-                    <FileEdit size={16} /> Iniciar Avaliação
+                    <FileEdit size={16} /> Iniciar avaliação completa
                   </button>
               )}
 
