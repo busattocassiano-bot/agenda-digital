@@ -119,7 +119,7 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
       if (clienteId) {
         const existingPaciente = pacientes.find(p => String(p.id) === String(clienteId));
         if (existingPaciente) {
-          nextStep = 2; // Pula para a aba de avaliação
+          nextStep = 1; // Começa sempre do passo 1 para revisar os dados
           setIsEditingCadastro(false);
           initialPacienteData = { 
             ...initialPacienteData, 

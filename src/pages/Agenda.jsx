@@ -509,9 +509,7 @@ export default function Agenda() {
               
               {!servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') && (
                 <button className="dropdown-item" onClick={() => {
-                  setDataInicio(selectedAgendamento.data || format(new Date(), 'yyyy-MM-dd'));
-                  if (selectedAgendamento.clienteId) setClienteId(selectedAgendamento.clienteId);
-                  setAgendamentoModalOpen(true);
+                  setWizardOpen(true);
                   setEventMenuOpen(false);
                 }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: 'var(--text-main)' }}>
                   <Plus size={16} /> Novo Agendamento
