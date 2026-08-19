@@ -361,7 +361,7 @@ export default function Agenda() {
                       <div key={a.id} onClick={(e) => handleEventClick(e, a)} style={{ 
                         fontSize: '0.75rem', 
                         background: baseColor + '20', 
-                        color: baseColor, 
+                        color: '#1e293b', 
                         borderLeft: `3px solid ${baseColor}`,
                         padding: '2px 4px', 
                         borderRadius: '4px', 
@@ -455,13 +455,13 @@ export default function Agenda() {
                                     textAlign: 'left',
                                     cursor: 'pointer',
                                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                    color: baseColor
+                                    color: '#1e293b'
                                 }}
                             >
                                 <div style={{ fontWeight: 600, marginBottom: '2px' }}>
                                   {a.nomePacienteNovo || pacientes.find(p => p.id === a.clienteId)?.nome || 'Sem Nome'}
                                 </div>
-                                <div style={{ fontSize: '0.7rem', color: baseColor, opacity: 0.8 }}>
+                                <div style={{ fontSize: '0.7rem', color: '#475569', opacity: 0.9 }}>
                                   {srv?.nome || 'Serviço'}
                                 </div>
                             </div>
