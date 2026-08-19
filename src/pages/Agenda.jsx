@@ -48,6 +48,51 @@ export default function Agenda() {
   
   const [gerarCobrancaAvulsa, setGerarCobrancaAvulsa] = useState(false);
   const [diaVencimento, setDiaVencimento] = useState(5);
+  const [valorAvulso, setValorAvulso] = useState(0);
+
+  
+  const handleServicoChange = (newServicoId) => {
+    setServicoId(newServicoId);
+    const srv = servicos.find(s => s.id === newServicoId);
+    if (srv && srv.duracao) {
+      if (horaInicio) {
+        try {
+          const [h, m] = horaInicio.split(':');
+          const date = setHours(startOfDay(new Date()), parseInt(h));
+          const withMin = addMinutes(date, parseInt(m));
+          const end = addMinutes(withMin, parseInt(srv.duracao));
+          setHoraFim(format(end, 'HH:mm'));
+        } catch(e) {}
+      }
+      setValorAvulso(srv.valor || 0);
+    }
+  };
+
+  const handleHoraInicioChange = (newHora) => {
+    setHoraInicio(newHora);
+    if (servicoId) {
+      const srv = servicos.find(s => s.id === servicoId);
+      if (srv && srv.duracao) {
+        try {
+          const [h, m] = newHora.split(':');
+          const date = setHours(startOfDay(new Date()), parseInt(h));
+          const withMin = addMinutes(date, parseInt(m));
+          const end = addMinutes(withMin, parseInt(srv.duracao));
+          setHoraFim(format(end, 'HH:mm'));
+        } catch(e) {}
+      }
+    }
+  };
+
+  const handlePacienteNaoCadastradoChange = (checked) => {
+    setIsPacienteNaoCadastrado(checked);
+    if (checked) {
+      const avaliacaoSrv = servicos.find(s => s.nome.toLowerCase().includes('avalia'));
+      if (avaliacaoSrv) {
+        handleServicoChange(avaliacaoSrv.id);
+      }
+    }
+  };
 
   const clientMatriculas = matriculas ? matriculas.filter(m => m.clienteId === clienteId) : [];
 
@@ -185,7 +230,7 @@ export default function Agenda() {
             dataEmissao: format(new Date(), 'yyyy-MM-dd'),
             dataVencimento: format(setHours(new Date(dataInicio), 0), 'yyyy-MM') + '-' + diaVencimento.toString().padStart(2, '0'),
             clienteId: isPacienteNaoCadastrado ? null : clienteId,
-            valor: srv ? srv.valor : 0,
+            valor: parseFloat(valorAvulso) || 0,
             status: 'Pendente',
             descricao: `Agendamento Avulso - ${srv ? srv.nome : ''}`
         });
@@ -502,7 +547,7 @@ export default function Agenda() {
             
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', fontWeight: 500 }}>
-                    <input type="checkbox" checked={isPacienteNaoCadastrado} onChange={(e) => setIsPacienteNaoCadastrado(e.target.checked)} />
+                    <input type="checkbox" checked={isPacienteNaoCadastrado} onChange={(e) => handlePacienteNaoCadastradoChange(e.target.checked)} />
                     Paciente não cadastrado
                 </label>
             </div>
@@ -544,7 +589,7 @@ export default function Agenda() {
             <div style={{ display: 'flex', gap: '16px' }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Serviço</label>
-                  <select style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={servicoId} onChange={(e) => setServicoId(e.target.value)}>
+                  <select style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={servicoId} onChange={(e) => handleServicoChange(e.target.value)}>
                     <option value="">Selecione...</option>
                     {servicos.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
                   </select>
@@ -565,7 +610,7 @@ export default function Agenda() {
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Início</label>
-                  <input type="time" style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} />
+                  <input type="time" style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={horaInicio} onChange={(e) => handleHoraInicioChange(e.target.value)} />
                 </div>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Fim</label>
@@ -579,9 +624,15 @@ export default function Agenda() {
                     Gerar Cobrança Avulsa
                 </label>
                 {gerarCobrancaAvulsa && (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Dia do Vencimento:</span>
-                        <input type="number" min="1" max="31" value={diaVencimento} onChange={(e) => setDiaVencimento(e.target.value)} style={{ width: '60px', padding: '6px 8px', border: '1px solid var(--border-color)', borderRadius: '6px' }} />
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Valor (R$):</span>
+                            <input type="number" step="0.01" value={valorAvulso} onChange={(e) => setValorAvulso(e.target.value)} style={{ width: '80px', padding: '6px 8px', border: '1px solid var(--border-color)', borderRadius: '6px' }} />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Vencimento (Dia):</span>
+                            <input type="number" min="1" max="31" value={diaVencimento} onChange={(e) => setDiaVencimento(e.target.value)} style={{ width: '60px', padding: '6px 8px', border: '1px solid var(--border-color)', borderRadius: '6px' }} />
+                        </div>
                     </div>
                 )}
             </div>
