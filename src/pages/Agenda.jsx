@@ -10,10 +10,12 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAppData } from '../context/AppDataContext';
+import { useCompany } from '../context/CompanyContext';
 import { checkOverlapsAndCapacity } from '../utils/agendamentoUtils';
 import AvaliacaoWizardModal from '../components/AvaliacaoWizardModal';
 
 export default function Agenda() {
+  const { companyData } = useCompany();
   const { 
     agendamentos, setAgendamentos, addAgendamento, updateAgendamento, deleteAgendamento,
     pacientes, profissionais, servicos, recebimentos, addRecebimento, matriculas, feriados
@@ -128,9 +130,12 @@ export default function Agenda() {
   const monthGridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const monthDays = eachDayOfInterval({ start: monthGridStart, end: monthGridEnd });
 
-  // Generate time slots
-  const startTime = setHours(startOfDay(currentDate), 5);
-  const endTime = setHours(startOfDay(currentDate), 22);
+  // Generate time slots based on companyData or fallback
+  const startHour = companyData?.businessHoursStart ? parseInt(companyData.businessHoursStart.split(':')[0], 10) : 7;
+  const endHour = companyData?.businessHoursEnd ? parseInt(companyData.businessHoursEnd.split(':')[0], 10) : 20;
+  
+  const startTime = setHours(startOfDay(currentDate), startHour);
+  const endTime = setHours(startOfDay(currentDate), endHour);
   const timeSlots = [];
   let currentSlot = startTime;
   while (currentSlot <= endTime) {
@@ -337,17 +342,16 @@ export default function Agenda() {
                     cursor: feriado ? 'not-allowed' : 'pointer',
                     minHeight: '100px'
                   }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{ 
-                      fontWeight: 600, 
-                      color: isSameDay(day, new Date()) ? 'white' : (isSameMonth(day, currentDate) ? 'var(--text-dark)' : 'var(--text-muted)'),
+                      fontSize: '0.85rem', fontWeight: 600, color: !isSameMonth(day, currentDate) ? 'var(--text-muted)' : (isSameDay(day, new Date()) ? 'white' : 'var(--text-dark)'),
                       background: isSameDay(day, new Date()) ? 'var(--primary-color)' : 'transparent',
                       width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%'
                     }}>{format(day, 'd')}</span>
+                    {feriado && (
+                      <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{feriado.nome}</span>
+                    )}
                   </div>
-                  {feriado && (
-                    <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, marginBottom: '4px' }}>{feriado.descricao}</div>
-                  )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {dayAgendamentos.slice(0, 3).map(a => {
                       const srv = servicos.find(s => s.id === a.servicoId);
@@ -397,7 +401,7 @@ export default function Agenda() {
                     <div style={{ fontWeight: 600, color: feriado ? '#ef4444' : 'var(--text-dark)', fontSize: '0.95rem' }}>{format(day, 'EEEE', { locale: ptBR }).split('-')[0]}</div>
                     <div style={{ fontWeight: 400, color: feriado ? '#f87171' : 'var(--text-muted)', fontSize: '0.85rem' }}>{format(day, 'dd/MMM.', { locale: ptBR })}</div>
                     {feriado && (
-                      <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700, marginTop: '4px' }}>{feriado.descricao}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700, marginTop: '4px' }}>{feriado.nome}</div>
                     )}
                   </th>
                 )})}
