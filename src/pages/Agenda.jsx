@@ -446,6 +446,8 @@ export default function Agenda() {
                         textOverflow: 'ellipsis',
                         fontWeight: 600
                       }}>
+                        {a.status === 'Realizado' && <span style={{ background: '#22c55e', color: 'white', fontSize: '0.6rem', padding: '0 3px', borderRadius: '3px', marginRight: '4px' }}>Pr</span>}
+                        {a.status === 'Falta' && <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0 3px', borderRadius: '3px', marginRight: '4px' }}>F</span>}
                         {a.hora} - {a.nomePacienteNovo || pacientes.find(p=>p.id===a.clienteId)?.nome}
                       </div>
                     )})}
@@ -534,8 +536,14 @@ export default function Agenda() {
                                     color: '#1e293b'
                                 }}
                             >
-                                <div style={{ fontWeight: 600, marginBottom: '2px' }}>
-                                  {a.nomePacienteNovo || pacientes.find(p => p.id === a.clienteId)?.nome || 'Sem Nome'}
+                                <div style={{ fontWeight: 600, marginBottom: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                  <span>{a.nomePacienteNovo || pacientes.find(p => p.id === a.clienteId)?.nome || 'Sem Nome'}</span>
+                                  {a.status === 'Realizado' && (
+                                    <span style={{ background: '#22c55e', color: 'white', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>Pr</span>
+                                  )}
+                                  {a.status === 'Falta' && (
+                                    <span style={{ background: '#ef4444', color: 'white', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>F</span>
+                                  )}
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: '#475569', opacity: 0.9 }}>
                                   {srv?.nome || 'Serviço'}
