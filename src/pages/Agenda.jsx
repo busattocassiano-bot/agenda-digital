@@ -322,31 +322,30 @@ export default function Agenda() {
       <div style={{ marginBottom: '24px' }}>
           <div className="flex-between mb-4">
             <div style={{ display: 'flex', gap: '24px' }}>
-              <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-dark)' }}>Agenda</h1>
-              {aniversariantes.length > 0 && (
-                <div style={{
-                    background: '#fff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    minWidth: '220px',
-                    maxHeight: '75px',
-                    overflowY: 'auto',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                }}>
-                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#854d0e', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                       <span style={{ fontSize: '14px' }}>🎂</span> Aniversariantes do mês
-                   </div>
-                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                       {aniversariantes.map((a, i) => (
-                           <div key={i} style={{ fontSize: '0.8rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                               <strong style={{ background: '#fef08a', padding: '2px 6px', borderRadius: '4px', color: '#854d0e' }}>{a.dia.toString().padStart(2, '0')}</strong> 
-                               <span>{a.nome.split(' ')[0]}</span>
-                           </div>
-                       ))}
-                   </div>
-                </div>
-              )}
+                {aniversariantes.length > 0 && (
+                  <div style={{
+                      background: '#dcfce7',
+                      borderRadius: '8px',
+                      padding: '12px 20px',
+                      minWidth: '280px',
+                      maxHeight: '130px',
+                      overflowY: 'auto',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      border: '1px solid #bbf7d0'
+                  }}>
+                     <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>
+                         Aniversariantes
+                     </div>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                         {aniversariantes.map((a, i) => (
+                             <div key={i} style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                                 <strong style={{ background: '#22c55e', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>{a.dia.toString().padStart(2, '0')}</strong> 
+                                 <span>{a.nome.split(' ')[0]}</span>
+                             </div>
+                         ))}
+                     </div>
+                  </div>
+                )}
             </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
