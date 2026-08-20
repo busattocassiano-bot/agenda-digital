@@ -318,57 +318,52 @@ export default function Agenda() {
   return (
     <div style={{ padding: '32px', height: '100vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', position: 'relative' }}>
       
-      {/* Header and Controls */}
-      <div style={{ marginBottom: '24px' }}>
-          <div className="flex-between mb-4">
+              {/* Header and Controls */}
+        <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', gap: '24px' }}>
                 {aniversariantes.length > 0 && (
-                  <div style={{
-                      background: '#f2f5ed',
-                      borderRadius: '8px',
-                      padding: '12px 20px',
-                      minWidth: '360px',
-                      minHeight: '160px',
-                      maxHeight: '240px',
-                      overflowY: 'auto',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      border: '1px solid var(--border-color)'
-                  }}>
-                     <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>
-                         Aniversariantes
-                     </div>
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                         {aniversariantes.map((a, i) => (
-                             <div key={i} style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-                                 <strong style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>{a.dia.toString().padStart(2, '0')}</strong> 
-                                 <span>{a.nome.split(' ')[0]}</span>
-                             </div>
-                         ))}
-                     </div>
-                  </div>
+                    <div style={{
+                        background: '#f2f5ed',
+                        borderRadius: '8px',
+                        padding: '12px 20px',
+                        minWidth: '360px',
+                        maxHeight: '240px',
+                        overflowY: 'auto',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        border: '1px solid var(--border-color)'
+                    }}>
+                       <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>
+                           Aniversariantes
+                       </div>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                           {aniversariantes.map((a, i) => (
+                               <div key={i} style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
+                                   <strong style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>{a.dia.toString().padStart(2, '0')}</strong> 
+                                   <span>{a.nome.split(' ')[0]}</span>
+                               </div>
+                           ))}
+                       </div>
+                    </div>
                 )}
             </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '4px' }}>
-              <button 
-                onClick={() => setCalendarView('dia')}
-                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: calendarView === 'dia' ? 'white' : 'transparent', fontWeight: calendarView === 'dia' ? 600 : 500, color: calendarView === 'dia' ? 'var(--text-dark)' : 'var(--text-muted)', boxShadow: calendarView === 'dia' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer' }}
-              >Dia</button>
-              <button 
-                onClick={() => setCalendarView('semana')}
-                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: calendarView === 'semana' ? 'white' : 'transparent', fontWeight: calendarView === 'semana' ? 600 : 500, color: calendarView === 'semana' ? 'var(--text-dark)' : 'var(--text-muted)', boxShadow: calendarView === 'semana' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer' }}
-              >Semana</button>
-              <button 
-                onClick={() => setCalendarView('mes')}
-                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: calendarView === 'mes' ? 'white' : 'transparent', fontWeight: calendarView === 'mes' ? 600 : 500, color: calendarView === 'mes' ? 'var(--text-dark)' : 'var(--text-muted)', boxShadow: calendarView === 'mes' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer' }}
-              >Mês</button>
-            </div>
-          </div>
-        </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '16px' }}>
+              <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '4px' }}>
+                <button 
+                  onClick={() => setCalendarView('dia')}
+                  style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: calendarView === 'dia' ? 'white' : 'transparent', fontWeight: calendarView === 'dia' ? 600 : 500, color: calendarView === 'dia' ? 'var(--text-dark)' : 'var(--text-muted)', boxShadow: calendarView === 'dia' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer' }}
+                >Dia</button>
+                <button 
+                  onClick={() => setCalendarView('semana')}
+                  style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: calendarView === 'semana' ? 'white' : 'transparent', fontWeight: calendarView === 'semana' ? 600 : 500, color: calendarView === 'semana' ? 'var(--text-dark)' : 'var(--text-muted)', boxShadow: calendarView === 'semana' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer' }}
+                >Semana</button>
+                <button 
+                  onClick={() => setCalendarView('mes')}
+                  style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: calendarView === 'mes' ? 'white' : 'transparent', fontWeight: calendarView === 'mes' ? 600 : 500, color: calendarView === 'mes' ? 'var(--text-dark)' : 'var(--text-muted)', boxShadow: calendarView === 'mes' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer' }}
+                >Mês</button>
+              </div>
 
-                <div className="flex-between" style={{ justifyContent: 'flex-end' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <button onClick={goToday} style={{ padding: '8px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'white', cursor: 'pointer', fontWeight: 600, color: 'var(--text-dark)' }}>Hoje</button>
             
             <div style={{ display: 'flex', alignItems: 'center', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
