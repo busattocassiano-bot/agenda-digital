@@ -22,7 +22,7 @@ export default function Agenda() {
   } = useAppData();
 
   const [view, setView] = useState('tabela');
-  const [interval, setInterval] = useState(15);
+  const [interval, setInterval] = useState(30);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState('semana'); // 'dia', 'semana', 'mes'
   const [selectedProfissional, setSelectedProfissional] = useState('');
