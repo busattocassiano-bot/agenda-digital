@@ -324,14 +324,14 @@ export default function Agenda() {
             <div style={{ display: 'flex', gap: '24px' }}>
                 {aniversariantes.length > 0 && (
                   <div style={{
-                      background: '#dcfce7',
+                      background: '#f2f5ed',
                       borderRadius: '8px',
                       padding: '12px 20px',
                       minWidth: '280px',
                       maxHeight: '130px',
                       overflowY: 'auto',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      border: '1px solid #bbf7d0'
+                      border: '1px solid var(--border-color)'
                   }}>
                      <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>
                          Aniversariantes
