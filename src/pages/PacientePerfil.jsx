@@ -603,7 +603,7 @@ export default function PacientePerfil() {
                         </div>
                         <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Queixa Principal:</strong> {av.queixaPrincipal || 'N/A'}</div>
                         <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Hábitos de Vida:</strong> {av.habitosVida || 'N/A'}</div>
-                        <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Expectativas:</strong> {av.expectativas || 'N/A'}</div>
+                        <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Testes Funcionais e Observações:</strong> {av.expectativas || 'N/A'}</div>
                         <div style={{ fontSize: '0.9rem' }}><strong>Plano de Tratamento:</strong> {av.planoTratamento || 'N/A'}</div>
                       </div>
                     ))}
@@ -688,7 +688,7 @@ export default function PacientePerfil() {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Expectativas e Observações</label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Testes Funcionais e Observações</label>
                     <textarea value={anamnese.expectativas} onChange={(e) => setAnamnese({...anamnese, expectativas: e.target.value})} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}></textarea>
                   </div>
 

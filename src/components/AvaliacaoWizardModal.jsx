@@ -712,8 +712,8 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Expectativas e Observações</label>
-                <textarea rows="4" value={avaliacaoData.expectativas} onChange={e => setAvaliacaoData({...avaliacaoData, expectativas: e.target.value})} placeholder="Expectativas do paciente e observações adicionais..." style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', resize: 'vertical' }}></textarea>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Testes Funcionais e Observações</label>
+                <textarea rows="4" value={avaliacaoData.expectativas} onChange={e => setAvaliacaoData({...avaliacaoData, expectativas: e.target.value})} placeholder="Testes funcionais e observações adicionais..." style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', resize: 'vertical' }}></textarea>
               </div>
 
               <div>

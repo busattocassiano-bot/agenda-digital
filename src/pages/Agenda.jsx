@@ -18,7 +18,7 @@ export default function Agenda() {
   const { companyData } = useCompany();
   const { 
     agendamentos, setAgendamentos, addAgendamento, updateAgendamento, deleteAgendamento,
-    pacientes, profissionais, servicos, recebimentos, addRecebimento, matriculas, feriados
+    pacientes, profissionais, servicos, recebimentos, addRecebimento, matriculas, feriados, addEvolucao
   } = useAppData();
 
   const [view, setView] = useState('tabela');
