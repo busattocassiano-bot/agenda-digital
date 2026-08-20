@@ -884,7 +884,7 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
                   {isRecorrenteOrPackage && (
                     <div style={{ marginTop: '16px' }}>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '12px' }}>Dias e Horários das Aulas:</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                       {[1,2,3,4,5,6,0].map(day => {
                         const dayIndex = day.toString();
                         const label = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][day];
@@ -902,10 +902,10 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
                               })}
                               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                             />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: matriculaData.diasRecorrentes[dayIndex].checked ? 700 : 400 }}>{label}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ width: '65px', fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: matriculaData.diasRecorrentes[dayIndex].checked ? 700 : 400 }}>{label}</span>
                               {matriculaData.diasRecorrentes[dayIndex].checked && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <input 
                                     type="time" 
                                     value={matriculaData.diasRecorrentes[dayIndex].hora}

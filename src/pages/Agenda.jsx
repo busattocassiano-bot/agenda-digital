@@ -98,6 +98,32 @@ export default function Agenda() {
     }
   };
 
+  const selectedProfissionalData = profissionais.find(p => p.id === selectedProfissional);
+
+  const getAniversariantesDoMes = () => {
+    const monthIndex = currentDate.getMonth() + 1;
+    const aniversariantes = pacientes.filter(p => {
+      if (!p.dataNascimento) return false;
+      const parts = p.dataNascimento.split('-');
+      if (parts.length < 3) return false;
+      return parseInt(parts[1]) === monthIndex;
+    }).map(p => {
+      const parts = p.dataNascimento.split('-');
+      return { nome: p.nome, dia: parseInt(parts[2]) };
+    }).sort((a, b) => a.dia - b.dia);
+    return aniversariantes;
+  };
+  
+  const aniversariantes = getAniversariantesDoMes();
+
+  const handleNext = () => {
+    const newDate = new Date(currentDate);
+    if (calendarView === 'dia') newDate.setDate(newDate.getDate() + 1);
+    else if (calendarView === 'semana') newDate.setDate(newDate.getDate() + 7);
+    else newDate.setMonth(newDate.getMonth() + 1);
+    setCurrentDate(newDate);
+  };
+
   const clientMatriculas = matriculas ? matriculas.filter(m => m.clienteId === clienteId) : [];
 
   // Navigation
@@ -294,11 +320,24 @@ export default function Agenda() {
       
       {/* Header and Controls */}
       <div style={{ marginBottom: '24px' }}>
-        <div className="flex-between mb-4">
-          <div>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '4px' }}>Agenda</h1>
-            <p className="text-muted">Gerencie seus agendamentos e visualizações</p>
-          </div>
+          <div className="flex-between mb-4">
+            <div>
+              <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Agenda</h1>
+              {aniversariantes.length > 0 ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', maxWidth: '600px' }}>
+                  <div style={{ background: '#fef08a', color: '#854d0e', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '14px' }}>🎂</span> Aniversariantes do mês:
+                  </div>
+                  {aniversariantes.map((a, i) => (
+                    <span key={i} style={{ fontSize: '0.85rem', color: 'var(--text-main)', background: 'white', padding: '2px 8px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                      <strong>{a.dia.toString().padStart(2, '0')}</strong> - {a.nome.split(' ')[0]}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted" style={{ margin: 0 }}>Nenhum aniversariante neste mês.</p>
+              )}
+            </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
             <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '4px' }}>
