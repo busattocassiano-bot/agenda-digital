@@ -339,7 +339,7 @@ export default function Agenda() {
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                          {aniversariantes.map((a, i) => (
                              <div key={i} style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-                                 <strong style={{ background: '#22c55e', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>{a.dia.toString().padStart(2, '0')}</strong> 
+                                 <strong style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>{a.dia.toString().padStart(2, '0')}</strong> 
                                  <span>{a.nome.split(' ')[0]}</span>
                              </div>
                          ))}
