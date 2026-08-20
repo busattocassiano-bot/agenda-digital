@@ -327,8 +327,9 @@ export default function Agenda() {
                       background: '#f2f5ed',
                       borderRadius: '8px',
                       padding: '12px 20px',
-                      minWidth: '280px',
-                      maxHeight: '130px',
+                      minWidth: '360px',
+                      minHeight: '160px',
+                      maxHeight: '240px',
                       overflowY: 'auto',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                       border: '1px solid var(--border-color)'
