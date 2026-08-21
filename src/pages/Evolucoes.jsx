@@ -3,7 +3,7 @@ import { Search, FileSpreadsheet, Printer, Calendar as CalendarIcon, ChevronDown
 import { useAppData } from '../context/AppDataContext';
 
 export default function Evolucoes() {
-  const { pacientes, profissionais, evolucoes, addEvolucao, updateEvolucao, agendamentos, updateAgendamento, matriculas, updateMatricula, planos } = useAppData();
+  const { pacientes, profissionais, evolucoes, addEvolucao, updateEvolucao, agendamentos, updateAgendamento, matriculas, updateMatricula, planos, servicos } = useAppData();
   
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -51,7 +51,18 @@ export default function Evolucoes() {
   };
 
   const combinedList = useMemo(() => {
-    const mappedAgendamentos = agendamentos.map(a => {
+    const pAgendamentos = agendamentos.filter(a => {
+      if (a.servico === 'Reposição' || a.tipo === 'Reposicao') return false;
+      
+      const srv = servicos.find(s => s.id === a.servicoId || s.nome === a.servico);
+      const requiresEvolucao = srv ? (srv.exigeEvolucao !== undefined ? srv.exigeEvolucao : !srv.nome.toLowerCase().includes('avalia')) : true;
+      
+      if (!requiresEvolucao) return false;
+      
+      return true;
+    });
+
+    const mappedAgendamentos = pAgendamentos.map(a => {
       let ev = evolucoes.find(e => e.idAgendamento === a.id);
       if (!ev) {
         ev = evolucoes.find(e => e.data === a.data.split('-').reverse().join('/') && e.clienteId === a.clienteId);

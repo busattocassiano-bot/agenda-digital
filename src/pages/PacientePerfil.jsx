@@ -6,7 +6,7 @@ import NovaMatriculaModal from '../components/NovaMatriculaModal';
 
 export default function PacientePerfil() {
   const { id } = useParams();
-  const { pacientes, matriculas, updateMatricula, planos, recebimentos, agendamentos, evolucoes, addEvolucao, updateEvolucao, profissionais, avaliacoes } = useAppData();
+  const { pacientes, matriculas, updateMatricula, planos, recebimentos, agendamentos, evolucoes, addEvolucao, updateEvolucao, profissionais, avaliacoes, servicos } = useAppData();
   
   const paciente = pacientes.find(p => p.id === id) || { 
     nome: 'Não encontrado', 
@@ -63,7 +63,17 @@ export default function PacientePerfil() {
   };
 
   const combinedEvolucoesList = useMemo(() => {
-    const pAgendamentos = agendamentos.filter(a => a.clienteId === id && a.servico !== 'Reposição' && a.tipo !== 'Reposicao' && a.servico !== 'Avaliação' && a.tipo !== 'Avaliacao');
+    const pAgendamentos = agendamentos.filter(a => {
+      if (a.clienteId !== id) return false;
+      if (a.servico === 'Reposição' || a.tipo === 'Reposicao') return false;
+      
+      const srv = servicos.find(s => s.id === a.servicoId || s.nome === a.servico);
+      const requiresEvolucao = srv ? (srv.exigeEvolucao !== undefined ? srv.exigeEvolucao : !srv.nome.toLowerCase().includes('avalia')) : true;
+      
+      if (!requiresEvolucao) return false;
+      
+      return true;
+    });
     
     const mappedAgendamentos = pAgendamentos.map(a => {
       let ev = evolucoes.find(e => e.idAgendamento === a.id);
