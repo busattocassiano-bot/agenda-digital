@@ -277,8 +277,13 @@ export default function Agenda() {
       updateAgendamento(selectedAgendamento.id, { status: newStatus });
       
       if (newStatus === 'Realizado') {
-        setEvolucaoAgendamento(selectedAgendamento);
-        setEvolucaoText('');
+        const srv = servicos.find(s => s.id === selectedAgendamento.servicoId);
+        if (srv && srv.nome.toLowerCase().includes('avalia')) {
+          setSelectedAgendamento(null);
+        } else {
+          setEvolucaoAgendamento(selectedAgendamento);
+          setEvolucaoText('');
+        }
       } else {
         setSelectedAgendamento(null);
       }
