@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ChevronLeft, ChevronRight, Plus, RefreshCw, Filter, 
-  LayoutList, LayoutGrid, Calendar as CalendarIcon, X, FileEdit, CheckCircle2, XCircle, User, CreditCard
+  LayoutList, LayoutGrid, Calendar as CalendarIcon, X, FileEdit, CheckCircle2, XCircle, User, CreditCard, AlertCircle
 } from 'lucide-react';
 import { 
   format, addDays, startOfWeek, endOfWeek, isSameDay, 
@@ -448,6 +448,7 @@ export default function Agenda() {
                       }}>
                         {a.status === 'Realizado' && <span style={{ background: '#22c55e', color: 'white', fontSize: '0.6rem', padding: '0 3px', borderRadius: '3px', marginRight: '4px' }}>Pr</span>}
                         {a.status === 'Falta' && <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0 3px', borderRadius: '3px', marginRight: '4px' }}>F</span>}
+                        {a.status === 'Falta Justificada' && <span style={{ background: '#f59e0b', color: 'white', fontSize: '0.6rem', padding: '0 3px', borderRadius: '3px', marginRight: '4px' }}>Fj</span>}
                         {a.hora} - {a.nomePacienteNovo || pacientes.find(p=>p.id===a.clienteId)?.nome}
                       </div>
                     )})}
@@ -544,6 +545,9 @@ export default function Agenda() {
                                   {a.status === 'Falta' && (
                                     <span style={{ background: '#ef4444', color: 'white', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>F</span>
                                   )}
+                                  {a.status === 'Falta Justificada' && (
+                                    <span style={{ background: '#f59e0b', color: 'white', fontSize: '0.65rem', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>Fj</span>
+                                  )}
                                 </div>
                                 <div style={{ fontSize: '0.7rem', color: '#475569', opacity: 0.9 }}>
                                   {srv?.nome || 'Serviço'}
@@ -587,6 +591,9 @@ export default function Agenda() {
               </button>
               <button className="dropdown-item" onClick={() => handleUpdateStatus('Falta')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#ea580c' }}>
                 <XCircle size={16} /> Marcar como Falta
+              </button>
+              <button className="dropdown-item" onClick={() => handleUpdateStatus('Falta Justificada')} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '6px', color: '#d97706' }}>
+                <AlertCircle size={16} /> Falta Justificada
               </button>
               
               <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }}></div>
