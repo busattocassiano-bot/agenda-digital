@@ -278,7 +278,9 @@ export default function Agenda() {
       
       if (newStatus === 'Realizado') {
         const srv = servicos.find(s => s.id === selectedAgendamento.servicoId);
-        if (srv && srv.nome.toLowerCase().includes('avalia')) {
+        const requiresEvolucao = srv ? (srv.exigeEvolucao !== undefined ? srv.exigeEvolucao : !srv.nome.toLowerCase().includes('avalia')) : true;
+        
+        if (!requiresEvolucao) {
           setSelectedAgendamento(null);
         } else {
           setEvolucaoAgendamento(selectedAgendamento);

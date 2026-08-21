@@ -11,6 +11,7 @@ export default function Servicos() {
   const [clientesMax, setClientesMax] = useState('');
   const [cor, setCor] = useState('#fda4af'); // Default color
   const [duracao, setDuracao] = useState('60'); // Default duration
+  const [exigeEvolucao, setExigeEvolucao] = useState(true);
   const [editingId, setEditingId] = useState(null);
 
   const handleOpenNew = () => {
@@ -18,6 +19,7 @@ export default function Servicos() {
     setClientesMax('');
     setCor('#fda4af');
     setDuracao('60');
+    setExigeEvolucao(true);
     setEditingId(null);
     setModalOpen(true);
   };
@@ -27,6 +29,7 @@ export default function Servicos() {
     setClientesMax(servico.clientesMax || '');
     setCor(servico.cor || '#fda4af');
     setDuracao(servico.duracao || '60');
+    setExigeEvolucao(servico.exigeEvolucao !== undefined ? servico.exigeEvolucao : !servico.nome.toLowerCase().includes('avalia'));
     setEditingId(servico.id);
     setModalOpen(true);
   };
@@ -34,9 +37,9 @@ export default function Servicos() {
   const handleSave = () => {
     if (nome) {
       if (editingId) {
-        updateServico(editingId, { nome, clientesMax, cor, duracao });
+        updateServico(editingId, { nome, clientesMax, cor, duracao, exigeEvolucao });
       } else {
-        addServico({ nome, clientesMax, cor, duracao });
+        addServico({ nome, clientesMax, cor, duracao, exigeEvolucao });
       }
       setModalOpen(false);
       setShowToast(true);
@@ -204,6 +207,11 @@ export default function Servicos() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
                   <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
                   Limitar justificativa
+                </label>
+                
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer', marginTop: '12px' }}>
+                  <input type="checkbox" checked={exigeEvolucao} onChange={(e) => setExigeEvolucao(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
+                  Exige Evolução
                 </label>
               </div>
 
