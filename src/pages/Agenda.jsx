@@ -503,7 +503,10 @@ export default function Agenda() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {dayAgendamentos.slice(0, 3).map(a => {
                       const srv = servicos.find(s => s.id === a.servicoId);
-                      const baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
+                      let baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
+                        if (a.status === 'Realizado') baseColor = '#22c55e';
+                        if (a.status === 'Falta') baseColor = '#ef4444';
+                        if (a.status === 'Falta Justificada') baseColor = '#f59e0b';
                       
                       return (
                       <div key={a.id} onClick={(e) => handleEventClick(e, a)} style={{ 
@@ -591,7 +594,10 @@ export default function Agenda() {
                       >
                         {!feriado && slotAgendamentos.map(a => {
                             const srv = servicos.find(s => s.id === a.servicoId);
-                            const baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
+                            let baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
+                        if (a.status === 'Realizado') baseColor = '#22c55e';
+                        if (a.status === 'Falta') baseColor = '#ef4444';
+                        if (a.status === 'Falta Justificada') baseColor = '#f59e0b';
                             
                             return (
                             <div key={a.id} 
