@@ -10,6 +10,8 @@ export default function Pacientes() {
   const [novoClienteModalOpen, setNovoClienteModalOpen] = useState(false);
   const [wizardModalOpen, setWizardModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showInativos, setShowInativos] = useState(false);
   const navigate = useNavigate();
   
   // Form states
@@ -126,6 +128,18 @@ export default function Pacientes() {
     color: 'var(--text-main)', fontSize: '0.9rem' 
   };
 
+  const filteredPacientes = pacientes.filter(p => {
+    const matchesSearch = p.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (p.telefone && p.telefone.includes(searchTerm));
+    
+    // Se showInativos for true, mostrar apenas os inativos (statusAtivo === false)
+    // Se showInativos for false, mostrar apenas os ativos (statusAtivo !== false)
+    const isActive = p.statusAtivo !== false;
+    const matchesStatus = showInativos ? !isActive : isActive;
+
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
@@ -137,11 +151,19 @@ export default function Pacientes() {
           <input 
             type="text" 
             placeholder="Informe o nome do Aluno" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent' }} 
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', paddingLeft: '4px' }}>
-          <input type="checkbox" id="inativos" style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)' }} />
+          <input 
+            type="checkbox" 
+            id="inativos" 
+            checked={showInativos}
+            onChange={(e) => setShowInativos(e.target.checked)}
+            style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)', cursor: 'pointer' }} 
+          />
           <label htmlFor="inativos" style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer' }}>
             Exibir apenas Alunos inativos.
           </label>
@@ -152,34 +174,16 @@ export default function Pacientes() {
       <div className="card" style={{ padding: '24px' }}>
         <div className="flex-between" style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#1e293b' }}>Lista de Clientes</h2>
-          
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{ background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
-              Exportar
-            </button>
-            <button style={{ background: '#64748b', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Download size={16} /> Planilha
-            </button>
-            <button style={{ background: '#38bdf8', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer' }}>
-              Importar
-            </button>
-            <button style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Trash2 size={16} /> Excluir Selecionados
-            </button>
-            <button 
-              onClick={() => { setEditingId(null); setNovoClienteModalOpen(true); }}
-              style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-            >
-              <Plus size={20} />
-            </button>
-            <button style={{ background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <RefreshCw size={20} />
-            </button>
-          </div>
+          <button 
+            onClick={() => setNovoClienteModalOpen(true)}
+            style={{ background: '#0ea5e9', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+          >
+            <Plus size={18} /> Novo Cliente
+          </button>
         </div>
 
         {/* Tabela de Clientes */}
-        {pacientes.length === 0 ? (
+        {filteredPacientes.length === 0 ? (
           <div style={{ background: '#fef08a', color: '#854d0e', padding: '16px 20px', borderRadius: '8px', fontSize: '0.95rem' }}>
             <strong style={{ fontWeight: 700 }}>Atenção!</strong> <span style={{ fontWeight: 500 }}>Nenhum registro foi encontrado.</span>
           </div>
@@ -194,7 +198,7 @@ export default function Pacientes() {
                 </tr>
               </thead>
               <tbody>
-                {pacientes.map((paciente) => (
+                {filteredPacientes.map((paciente) => (
                   <tr key={paciente.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500 }}>{paciente.nome}</td>
                     <td style={{ padding: '16px', color: 'var(--text-main)' }}>{paciente.telefone}</td>
