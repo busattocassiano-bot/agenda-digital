@@ -38,6 +38,9 @@ export default function Agenda() {
   
   // Agendamento form states
   const [tipoAgendamento, setTipoAgendamento] = useState('Normal');
+  const [isRecorrente, setIsRecorrente] = useState(false);
+  const [diasRecorrencia, setDiasRecorrencia] = useState([]);
+  const [semanasRecorrencia, setSemanasRecorrencia] = useState(4);
   const [isPacienteNaoCadastrado, setIsPacienteNaoCadastrado] = useState(false);
   const [clienteId, setClienteId] = useState('');
   const [matriculaId, setMatriculaId] = useState('');
@@ -201,10 +204,72 @@ export default function Agenda() {
       alert("Preencha data e horários.");
       return;
     }
-    if (!servicoId || !profissionalId) {
+    if (tipoAgendamento === 'Normal' && (!servicoId || !profissionalId)) {
       alert("Selecione serviço e profissional.");
       return;
     }
+    if (tipoAgendamento === 'bloqueio' && !profissionalId) {
+      alert("Selecione o profissional para o bloqueio de horário.");
+      return;
+    }
+    
+    if (tipoAgendamento === 'bloqueio') {
+        if (isRecorrente) {
+          if (diasRecorrencia.length === 0) {
+            alert("Selecione pelo menos um dia da semana para o bloqueio recorrente.");
+            return;
+          }
+          if (!semanasRecorrencia || semanasRecorrencia < 1) {
+            alert("Preencha um número válido de semanas.");
+            return;
+          }
+          const startDate = parseISO(dataInicio);
+          const totalDays = semanasRecorrencia * 7;
+          let blocksCreated = 0;
+          for (let i = 0; i < totalDays; i++) {
+             const currentDate = addDays(startDate, i);
+             const currentDayOfWeek = currentDate.getDay();
+             if (diasRecorrencia.includes(currentDayOfWeek)) {
+                const dateStr = format(currentDate, 'yyyy-MM-dd');
+                const payload = {
+                    id: Date.now().toString() + '_' + i,
+                    data: dateStr,
+                    hora: horaInicio,
+                    horaFim: horaFim,
+                    clienteId: null,
+                    matriculaId: null,
+                    nomePacienteNovo: 'Bloqueio',
+                    telefonePacienteNovo: null,
+                    servicoId: null,
+                    profissionalId,
+                    tipo: 'bloqueio',
+                    status: 'Bloqueio'
+                };
+                addAgendamento(payload);
+                blocksCreated++;
+             }
+          }
+          alert(`Foram criados ${blocksCreated} bloqueios recorrentes!`);
+        } else {
+          const payload = {
+              id: Date.now().toString(),
+              data: dataInicio,
+              hora: horaInicio,
+              horaFim: horaFim,
+              clienteId: null,
+              matriculaId: null,
+              nomePacienteNovo: 'Bloqueio',
+              telefonePacienteNovo: null,
+              servicoId: null,
+              profissionalId,
+              tipo: 'bloqueio',
+              status: 'Bloqueio'
+          };
+          addAgendamento(payload);
+        }
+        setAgendamentoModalOpen(false);
+        return;
+      }
     
     let finalClienteId = clienteId;
     let finalPacienteNome = "";
@@ -646,12 +711,25 @@ export default function Agenda() {
               <button onClick={() => setAgendamentoModalOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', fontWeight: 500 }}>
-                    <input type="checkbox" checked={isPacienteNaoCadastrado} onChange={(e) => handlePacienteNaoCadastradoChange(e.target.checked)} />
-                    Paciente não cadastrado
-                </label>
-            </div>
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', fontWeight: 500, cursor: 'pointer' }}>
+                      <input type="radio" name="tipoAg" checked={tipoAgendamento === 'Normal'} onChange={() => setTipoAgendamento('Normal')} style={{ accentColor: 'var(--primary-color)' }} />
+                      Agendamento Normal
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', fontWeight: 500, cursor: 'pointer' }}>
+                      <input type="radio" name="tipoAg" checked={tipoAgendamento === 'bloqueio'} onChange={() => setTipoAgendamento('bloqueio')} style={{ accentColor: 'var(--primary-color)' }} />
+                      Bloquear Horário
+                  </label>
+              </div>
+
+              {tipoAgendamento === 'Normal' && (
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-dark)', fontWeight: 500 }}>
+                        <input type="checkbox" checked={isPacienteNaoCadastrado} onChange={(e) => handlePacienteNaoCadastradoChange(e.target.checked)} />
+                        Paciente não cadastrado
+                    </label>
+                </div>
+              )}
 
             {tipoAgendamento === 'Normal' && (!isPacienteNaoCadastrado ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -705,6 +783,45 @@ export default function Agenda() {
                   </select>
                 </div>
             </div>
+
+            {tipoAgendamento === 'bloqueio' && (
+              <div style={{ marginTop: '16px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '16px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={isRecorrente} onChange={(e) => setIsRecorrente(e.target.checked)} style={{ accentColor: 'var(--primary-color)' }} />
+                  Bloqueio Recorrente?
+                </label>
+
+                {isRecorrente && (
+                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Dias da Semana</div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, idx) => (
+                          <button 
+                            key={idx} 
+                            onClick={() => setDiasRecorrencia(prev => prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx])}
+                            style={{ 
+                              padding: '6px 12px', 
+                              borderRadius: '16px', 
+                              border: diasRecorrencia.includes(idx) ? 'none' : '1px solid var(--border-color)', 
+                              background: diasRecorrencia.includes(idx) ? 'var(--primary-color)' : 'white', 
+                              color: diasRecorrencia.includes(idx) ? 'white' : 'var(--text-main)', 
+                              fontSize: '0.8rem', 
+                              cursor: 'pointer' 
+                            }}>
+                            {dia}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                       <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Repetir por quantas semanas?</label>
+                       <input type="number" min="1" max="52" value={semanasRecorrencia} onChange={(e) => setSemanasRecorrencia(e.target.value)} style={{ padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', width: '100px', display: 'block', marginTop: '4px' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '16px' }}>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
