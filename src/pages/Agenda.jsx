@@ -438,7 +438,7 @@ export default function Agenda() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {dayAgendamentos.slice(0, 3).map(a => {
                       const srv = servicos.find(s => s.id === a.servicoId);
-                      const baseColor = srv?.cor || '#0ea5e9';
+                      const baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
                       
                       return (
                       <div key={a.id} onClick={(e) => handleEventClick(e, a)} style={{ 
@@ -526,7 +526,7 @@ export default function Agenda() {
                       >
                         {!feriado && slotAgendamentos.map(a => {
                             const srv = servicos.find(s => s.id === a.servicoId);
-                            const baseColor = srv?.cor || '#0ea5e9';
+                            const baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
                             
                             return (
                             <div key={a.id} 
@@ -653,7 +653,7 @@ export default function Agenda() {
                 </label>
             </div>
 
-            {!isPacienteNaoCadastrado ? (
+            {tipoAgendamento === 'Normal' && (!isPacienteNaoCadastrado ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -685,9 +685,10 @@ export default function Agenda() {
                         <input type="text" style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={telefonePacienteNovo} onChange={(e) => setTelefonePacienteNovo(e.target.value)} />
                     </div>
                 </div>
-            )}
+            ))}
 
             <div style={{ display: 'flex', gap: '16px' }}>
+                {tipoAgendamento === 'Normal' && (
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Serviço</label>
                   <select style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={servicoId} onChange={(e) => handleServicoChange(e.target.value)}>
@@ -695,6 +696,7 @@ export default function Agenda() {
                     {servicos.map(s => <option key={s.id} value={s.id}>{s.nome}</option>)}
                   </select>
                 </div>
+              )}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Profissional</label>
                   <select style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={profissionalId} onChange={(e) => setProfissionalId(e.target.value)}>
