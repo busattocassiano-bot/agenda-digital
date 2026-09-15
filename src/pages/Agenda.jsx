@@ -670,7 +670,7 @@ export default function Agenda() {
               
               <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }}></div>
               
-              {!servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') && (
+              {!servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome?.toLowerCase().includes('avalia') && (
                 <button className="dropdown-item" onClick={() => {
                   setWizardOpen(true);
                   setEventMenuOpen(false);
@@ -679,7 +679,7 @@ export default function Agenda() {
                 </button>
               )}
 
-              {servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome.toLowerCase().includes('avalia') && (
+              {servicos.find(s => s.id === selectedAgendamento.servicoId)?.nome?.toLowerCase().includes('avalia') && (
                   <button className="dropdown-item" onClick={() => {
                       setEventMenuOpen(false);
                       setWizardOpen(true);

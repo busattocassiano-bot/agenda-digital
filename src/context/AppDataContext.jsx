@@ -1,214 +1,130 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { useCompany } from './CompanyContext';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const AppDataContext = createContext({});
 
 export function AppDataProvider({ children }) {
-  const { companyData } = useCompany();
-  const prefix = companyData?.id ? `c_${companyData.id}_` : 'default_';
+  const [pacientes, setPacientes] = useState([]);
+  const [profissionais, setProfissionais] = useState([]);
+  const [planos, setPlanos] = useState([]);
+  const [servicos, setServicos] = useState([]);
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [evolucoes, setEvolucoes] = useState([]);
+  const [matriculas, setMatriculas] = useState([]);
+  const [avaliacoes, setAvaliacoes] = useState([]);
+  const [recebimentos, setRecebimentos] = useState([]);
+  const [despesas, setDespesas] = useState([]);
+  const [feriados, setFeriados] = useState([]);
 
-  // Migration logic inside useEffect
   useEffect(() => {
-    if (companyData?.id) {
-      const migrationFlag = localStorage.getItem('legacyDataMigrated');
-      if (migrationFlag !== 'true') {
-        const legacyKeys = [
-          'pacientes', 'profissionais', 'cargos', 'planos', 'servicos', 
-          'agendamentos', 'evolucoes', 'agenda-matriculas', 'agenda-avaliacoes', 
-          'agenda-recebimentos', 'agenda-despesas', 'feriados'
-        ];
-        
-        legacyKeys.forEach(k => {
-          const oldData = localStorage.getItem(k);
-          if (oldData) {
-            localStorage.setItem(`c_${companyData.id}_${k}`, oldData);
-          }
-        });
-        
-        localStorage.setItem('legacyDataMigrated', 'true');
-        window.location.reload();
-      }
+    const collections = [
+      { name: 'pacientes', setter: setPacientes },
+      { name: 'profissionais', setter: setProfissionais },
+      { name: 'planos', setter: setPlanos },
+      { name: 'servicos', setter: setServicos },
+      { name: 'agendamentos', setter: setAgendamentos },
+      { name: 'evolucoes', setter: setEvolucoes },
+      { name: 'matriculas', setter: setMatriculas },
+      { name: 'avaliacoes', setter: setAvaliacoes },
+      { name: 'recebimentos', setter: setRecebimentos },
+      { name: 'despesas', setter: setDespesas },
+      { name: 'feriados', setter: setFeriados }
+    ];
+
+    const unsubscribes = collections.map(({ name, setter }) => {
+      const colRef = collection(db, name);
+      return onSnapshot(colRef, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        setter(data);
+      });
+    });
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, []);
+
+  const addDocument = async (colName, data) => {
+    try {
+      const docRef = await addDoc(collection(db, colName), data);
+      return docRef.id;
+    } catch (e) {
+      console.error(`Error adding document to ${colName}:`, e);
+      return null;
     }
-  }, [companyData]);
+  };
 
-  const loadState = (key, defaultValue) => {
-    const saved = localStorage.getItem(prefix + key);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return defaultValue;
-      }
+  const updateDocument = async (colName, id, data) => {
+    try {
+      await updateDoc(doc(db, colName, id), data);
+    } catch (e) {
+      console.error(`Error updating document in ${colName}:`, e);
     }
-    return defaultValue;
   };
 
-  // --- States ---
-  const [pacientes, setPacientes] = useState(() => loadState('pacientes', []));
-  const [profissionais, setProfissionais] = useState(() => loadState('profissionais', []));
-  const [cargos, setCargos] = useState(() => loadState('cargos', []));
-  const [planos, setPlanos] = useState(() => loadState('planos', []));
-  const [servicos, setServicos] = useState(() => loadState('servicos', []));
-  const [agendamentos, setAgendamentos] = useState(() => loadState('agendamentos', []));
-  const [evolucoes, setEvolucoes] = useState(() => loadState('evolucoes', []));
-  const [matriculas, setMatriculas] = useState(() => loadState('agenda-matriculas', []));
-  const [avaliacoes, setAvaliacoes] = useState(() => loadState('agenda-avaliacoes', []));
-  const [recebimentos, setRecebimentos] = useState(() => loadState('agenda-recebimentos', []));
-  const [despesas, setDespesas] = useState(() => loadState('agenda-despesas', []));
-  const [feriados, setFeriados] = useState(() => loadState('feriados', []));
-
-  // Reload states when company prefix changes
-  useEffect(() => {
-    setPacientes(loadState('pacientes', []));
-    setProfissionais(loadState('profissionais', []));
-    setCargos(loadState('cargos', []));
-    setPlanos(loadState('planos', []));
-    setServicos(loadState('servicos', []));
-    setAgendamentos(loadState('agendamentos', []));
-    setEvolucoes(loadState('evolucoes', []));
-    setMatriculas(loadState('agenda-matriculas', []));
-    setAvaliacoes(loadState('agenda-avaliacoes', []));
-    setRecebimentos(loadState('agenda-recebimentos', []));
-    setDespesas(loadState('agenda-despesas', []));
-    setFeriados(loadState('feriados', []));
-  }, [prefix]);
-
-  // --- Effect to save on change ---
-  // intentionally omitting prefix from dependency array to avoid overwriting new prefix with old state
-  useEffect(() => { localStorage.setItem(prefix + 'pacientes', JSON.stringify(pacientes)); }, [pacientes]);
-  useEffect(() => { localStorage.setItem(prefix + 'profissionais', JSON.stringify(profissionais)); }, [profissionais]);
-  useEffect(() => { localStorage.setItem(prefix + 'cargos', JSON.stringify(cargos)); }, [cargos]);
-  useEffect(() => { localStorage.setItem(prefix + 'planos', JSON.stringify(planos)); }, [planos]);
-  useEffect(() => { localStorage.setItem(prefix + 'servicos', JSON.stringify(servicos)); }, [servicos]);
-  useEffect(() => { localStorage.setItem(prefix + 'agendamentos', JSON.stringify(agendamentos)); }, [agendamentos]);
-  useEffect(() => { localStorage.setItem(prefix + 'evolucoes', JSON.stringify(evolucoes)); }, [evolucoes]);
-  useEffect(() => { localStorage.setItem(prefix + 'agenda-recebimentos', JSON.stringify(recebimentos)); }, [recebimentos, prefix]);
-  useEffect(() => { localStorage.setItem(prefix + 'agenda-despesas', JSON.stringify(despesas)); }, [despesas, prefix]);
-  useEffect(() => { localStorage.setItem(prefix + 'feriados', JSON.stringify(feriados)); }, [feriados, prefix]);
-  useEffect(() => {
-    localStorage.setItem(prefix + 'agenda-matriculas', JSON.stringify(matriculas));
-    localStorage.setItem(prefix + 'agenda-avaliacoes', JSON.stringify(avaliacoes));
-    localStorage.setItem(prefix + 'agenda-recebimentos', JSON.stringify(recebimentos));
-    localStorage.setItem(prefix + 'agenda-despesas', JSON.stringify(despesas));
-  }, [matriculas, avaliacoes, recebimentos, despesas]);
-
-  // --- Actions ---
-  const addPaciente = (paciente) => {
-    const newId = Date.now().toString();
-    setPacientes([...pacientes, { ...paciente, id: newId }]);
-    return newId;
+  const deleteDocument = async (colName, id) => {
+    try {
+      await deleteDoc(doc(db, colName, id));
+    } catch (e) {
+      console.error(`Error deleting document from ${colName}:`, e);
+    }
   };
 
-  const addProfissional = (profissional) => {
-    setProfissionais([...profissionais, { ...profissional, id: Date.now().toString() }]);
+  // Specific wrappers to match existing API
+  const addPaciente = async (paciente) => await addDocument('pacientes', paciente);
+  const updatePaciente = (id, data) => updateDocument('pacientes', id, data);
+
+  const addProfissional = (profissional) => addDocument('profissionais', profissional);
+
+  const addPlano = (plano) => addDocument('planos', plano);
+  const updatePlano = (id, data) => updateDocument('planos', id, data);
+
+  const addServico = (servico) => addDocument('servicos', servico);
+  const updateServico = (id, data) => updateDocument('servicos', id, data);
+
+  const addAgendamento = (agendamento) => addDocument('agendamentos', agendamento);
+  const updateAgendamento = (id, data) => updateDocument('agendamentos', id, data);
+  const deleteAgendamento = (id) => deleteDocument('agendamentos', id);
+
+  const addEvolucao = (evolucao) => addDocument('evolucoes', evolucao);
+  const updateEvolucao = (id, data) => updateDocument('evolucoes', id, data);
+
+  const addMatricula = async (matricula) => await addDocument('matriculas', matricula);
+  const updateMatricula = (id, data) => updateDocument('matriculas', id, data);
+
+  const addAvaliacao = (avaliacao) => addDocument('avaliacoes', avaliacao);
+
+  const addRecebimento = (recebimento) => addDocument('recebimentos', recebimento);
+  const updateRecebimento = (id, data) => updateDocument('recebimentos', id, data);
+  const deleteRecebimento = (id) => {
+    if (window.confirm("Tem certeza que deseja excluir este recebimento?")) {
+      deleteDocument('recebimentos', id);
+    }
   };
 
-  const addCargo = (cargo) => {
-    setCargos([...cargos, { ...cargo, id: Date.now().toString() }]);
-  };
+  const addDespesa = (despesa) => addDocument('despesas', despesa);
+  const updateDespesa = (id, data) => updateDocument('despesas', id, data);
+  const deleteDespesa = (id) => deleteDocument('despesas', id);
 
-  const addPlano = (plano) => {
-    setPlanos([...planos, { ...plano, id: Date.now().toString() }]);
-  };
+  const addFeriado = (feriado) => addDocument('feriados', feriado);
+  const removeFeriado = (id) => deleteDocument('feriados', id);
 
-  const addServico = (servico) => {
-    setServicos([...servicos, { ...servico, id: Date.now().toString() }]);
-  };
-
-  const updateServico = (id, updatedData) => {
-    setServicos(prev => prev.map(s => s.id === id ? { ...s, ...updatedData } : s));
-  };
-
-  const updatePlano = (id, updatedData) => {
-    setPlanos(prev => prev.map(p => p.id === id ? { ...p, ...updatedData } : p));
-  };
-
-  const addAgendamento = (agendamento) => {
-    setAgendamentos(prev => [...prev, { ...agendamento, id: Date.now().toString() + Math.random().toString(36).substring(2, 7) }]);
-  };
-  
-  const updateAgendamento = (id, updatedData) => {
-    setAgendamentos(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
-  };
-
-  const addEvolucao = (evolucao) => {
-    setEvolucoes([...evolucoes, { ...evolucao, id: Date.now().toString() }]);
-  };
-
-  const updateEvolucao = (id, updatedData) => {
-    setEvolucoes(prev => prev.map(e => e.id === id ? { ...e, ...updatedData } : e));
-  };
-
-  const addMatricula = (matricula) => {
-    const newId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
-    setMatriculas(prev => [...prev, { ...matricula, id: newId }]);
-    return newId;
-  };
-
-  const addFeriado = (feriado) => {
-    setFeriados(prev => [...prev, { ...feriado, id: Date.now().toString() }]);
-  };
-
-  const removeFeriado = (id) => {
-    setFeriados(prev => prev.filter(f => f.id !== id));
-  };
-
-  const updateMatricula = (id, updatedData) => {
-    setMatriculas(prev => prev.map(m => m.id === id ? { ...m, ...updatedData } : m));
-  };
-
-  const addAvaliacao = (avaliacao) => {
-    setAvaliacoes([...avaliacoes, { ...avaliacao, id: Date.now().toString() }]);
-  };
-
-  const addRecebimento = (recebimento) => {
-    setRecebimentos(prev => [...prev, { ...recebimento, id: Date.now().toString() + Math.random().toString(36).substring(2, 7) }]);
-  };
-
-  const updateRecebimento = (id, updatedData) => {
-    setRecebimentos(prev => prev.map(r => r.id === id ? { ...r, ...updatedData } : r));
-  };
-
-  const addDespesa = (despesa) => {
-    setDespesas([...despesas, { ...despesa, id: Date.now().toString() }]);
-  };
-
-  const updateDespesa = (id, updatedData) => {
-    setDespesas(prev => prev.map(d => d.id === id ? { ...d, ...updatedData } : d));
-  };
-
-  const deleteDespesa = (id) => {
-    setDespesas(despesas.filter(d => d.id !== id));
-  };
-
-  const updatePaciente = (id, updatedData) => {
-    setPacientes(prev => prev.map(p => p.id === id ? { ...p, ...updatedData } : p));
-  };
-
-  const resetData = () => {
-    setPacientes([]);
-    setAgendamentos([]);
-    setMatriculas([]);
-    setRecebimentos([]);
-    setEvolucoes([]);
-    setAvaliacoes([]);
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+  const resetData = async () => {
+     console.warn("Reset data is disabled in production.");
   };
 
   return (
     <AppDataContext.Provider value={{
       pacientes, addPaciente, setPacientes, updatePaciente,
       profissionais, addProfissional, setProfissionais,
-      cargos, addCargo, setCargos,
       planos, addPlano, setPlanos, updatePlano,
       servicos, addServico, setServicos, updateServico,
-      agendamentos, addAgendamento, updateAgendamento, setAgendamentos,
+      agendamentos, addAgendamento, updateAgendamento, deleteAgendamento, setAgendamentos,
       evolucoes, addEvolucao, updateEvolucao,
       matriculas, addMatricula, updateMatricula,
       avaliacoes, addAvaliacao,
-      recebimentos, addRecebimento, updateRecebimento, setRecebimentos,
+      recebimentos, addRecebimento, updateRecebimento, setRecebimentos, deleteRecebimento,
       despesas, addDespesa, updateDespesa, setDespesas, deleteDespesa,
       feriados, setFeriados, addFeriado, removeFeriado,
       resetData
