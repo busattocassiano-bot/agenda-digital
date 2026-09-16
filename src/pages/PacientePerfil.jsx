@@ -702,7 +702,7 @@ export default function PacientePerfil() {
                             onClick={() => setExpandedAvaliacaoId(isExpanded ? null : av.id)}
                             style={{ background: 'white', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', cursor: 'pointer' }}
                           >
-                            {isExpanded ? 'Ocultar Evoluções' : `Ver Evoluções (${evolucoesVinculadas.length}) - DEBUG: ${evolucoes.filter(e => e.clienteId === id).length} total no pac`}
+                            {isExpanded ? 'Ocultar Evoluções' : `Ver Evoluções (${evolucoesVinculadas.length})`}
                           </button>
                         </div>
                         
