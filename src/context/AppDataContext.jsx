@@ -74,7 +74,20 @@ export function AppDataProvider({ children }) {
   // Specific wrappers to match existing API
   const addPaciente = async (paciente) => await addDocument('pacientes', paciente);
   const updatePaciente = (id, data) => updateDocument('pacientes', id, data);
-  const deletePaciente = (id) => deleteDocument('pacientes', id);
+  const deletePaciente = async (id) => {
+    // Apagar paciente
+    await deleteDocument('pacientes', id);
+    // Apagar agendamentos vinculados
+    agendamentos.filter(a => a.clienteId === id).forEach(a => deleteDocument('agendamentos', a.id));
+    // Apagar evolucoes vinculadas
+    evolucoes.filter(e => e.clienteId === id).forEach(e => deleteDocument('evolucoes', e.id));
+    // Apagar matriculas vinculadas
+    matriculas.filter(m => m.clienteId === id).forEach(m => deleteDocument('matriculas', m.id));
+    // Apagar avaliacoes vinculadas
+    avaliacoes.filter(av => av.clienteId === id).forEach(av => deleteDocument('avaliacoes', av.id));
+    // Apagar recebimentos vinculados
+    recebimentos.filter(r => r.clienteId === id).forEach(r => deleteDocument('recebimentos', r.id));
+  };
 
   const addProfissional = (profissional) => addDocument('profissionais', profissional);
 
@@ -86,7 +99,19 @@ export function AppDataProvider({ children }) {
 
   const addAgendamento = (agendamento) => addDocument('agendamentos', agendamento);
   const updateAgendamento = (id, data) => updateDocument('agendamentos', id, data);
-  const deleteAgendamento = (id) => deleteDocument('agendamentos', id);
+  const deleteAgendamento = async (id) => {
+    await deleteDocument('agendamentos', id);
+    // Apagar evolução vinculada
+    const evolucaoLinked = evolucoes.find(e => e.idAgendamento === id);
+    if (evolucaoLinked) {
+      deleteDocument('evolucoes', evolucaoLinked.id);
+    }
+    // Apagar recebimento vinculado (cobrança avulsa)
+    const recebimentoLinked = recebimentos.find(r => r.idAgendamento === id);
+    if (recebimentoLinked) {
+      deleteDocument('recebimentos', recebimentoLinked.id);
+    }
+  };
 
   const addEvolucao = (evolucao) => addDocument('evolucoes', evolucao);
   const updateEvolucao = (id, data) => updateDocument('evolucoes', id, data);
@@ -98,11 +123,7 @@ export function AppDataProvider({ children }) {
 
   const addRecebimento = (recebimento) => addDocument('recebimentos', recebimento);
   const updateRecebimento = (id, data) => updateDocument('recebimentos', id, data);
-  const deleteRecebimento = (id) => {
-    if (window.confirm("Tem certeza que deseja excluir este recebimento?")) {
-      deleteDocument('recebimentos', id);
-    }
-  };
+  const deleteRecebimento = (id) => deleteDocument('recebimentos', id);
 
   const addDespesa = (despesa) => addDocument('despesas', despesa);
   const updateDespesa = (id, data) => updateDocument('despesas', id, data);

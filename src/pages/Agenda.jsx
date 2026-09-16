@@ -209,7 +209,7 @@ export default function Agenda() {
       setEventMenuOpen(true);
     };
 
-  const handleSaveAgendamento = () => {
+  const handleSaveAgendamento = async () => {
     if (!dataInicio || !horaInicio || !horaFim) {
       alert("Preencha data e horários.");
       return;
@@ -330,10 +330,12 @@ export default function Agenda() {
         status: 'Agendado'
     };
 
-    addAgendamento(payload);
-
-    if (gerarCobrancaAvulsa) {
-        addRecebimento({
+    const novoAgendamentoId = await addAgendamento(payload);
+  
+      if (gerarCobrancaAvulsa) {
+          addRecebimento({
+              idAgendamento: novoAgendamentoId,
+              
             id: Date.now().toString(),
             dataEmissao: format(new Date(), 'yyyy-MM-dd'),
             dataVencimento: dataInicio,
