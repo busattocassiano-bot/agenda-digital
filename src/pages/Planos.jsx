@@ -26,7 +26,7 @@ export default function Planos() {
     const isActive = p.statusAtivo !== false;
     const matchesStatus = showInativos ? !isActive : isActive;
     return matchesSearch && matchesModalidade && matchesStatus;
-  });
+  }).sort((a, b) => (a.modalidade || '').localeCompare(b.modalidade || '') || (a.nome || '').localeCompare(b.nome || ''));
 
   const handleOpenNew = () => {
     setNome('');
