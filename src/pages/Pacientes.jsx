@@ -205,7 +205,7 @@ export default function Pacientes() {
                     <td style={{ padding: '16px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                       <button onClick={() => openEditModal(paciente)} style={{ background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '6px', color: '#0ea5e9', cursor: 'pointer' }} title="Editar"><Edit size={16} /></button>
                       <button onClick={() => navigate(`/paciente/perfil/${paciente.id}`)} style={{ background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '6px', color: '#16a34a', cursor: 'pointer' }} title="Ver Perfil"><FileText size={16} /></button>
-                      <button onClick={() => setPacientes(pacientes.filter(p => p.id !== paciente.id))} style={{ background: '#fef2f2', border: 'none', padding: '8px', borderRadius: '6px', color: '#ef4444', cursor: 'pointer' }} title="Excluir"><Trash2 size={16} /></button>
+                      <button onClick={() => { if(window.confirm('Tem certeza que deseja excluir este paciente permanentemente?')) deletePaciente(paciente.id); }} style={{ background: '#fef2f2', border: 'none', padding: '8px', borderRadius: '6px', color: '#ef4444', cursor: 'pointer' }} title="Excluir"><Trash2 size={16} /></button>
                     </td>
                   </tr>
                 ))}

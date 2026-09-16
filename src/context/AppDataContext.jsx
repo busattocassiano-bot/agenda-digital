@@ -74,6 +74,7 @@ export function AppDataProvider({ children }) {
   // Specific wrappers to match existing API
   const addPaciente = async (paciente) => await addDocument('pacientes', paciente);
   const updatePaciente = (id, data) => updateDocument('pacientes', id, data);
+  const deletePaciente = (id) => deleteDocument('pacientes', id);
 
   const addProfissional = (profissional) => addDocument('profissionais', profissional);
 
@@ -116,7 +117,7 @@ export function AppDataProvider({ children }) {
 
   return (
     <AppDataContext.Provider value={{
-      pacientes, addPaciente, setPacientes, updatePaciente,
+      pacientes, addPaciente, setPacientes, updatePaciente, deletePaciente,
       profissionais, addProfissional, setProfissionais,
       planos, addPlano, setPlanos, updatePlano,
       servicos, addServico, setServicos, updateServico,
