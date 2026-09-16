@@ -184,15 +184,6 @@ export default function Evolucoes() {
         
         <div className="flex-between" style={{ marginBottom: '32px' }}>
           <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#1e293b' }}>Lista de Evoluções e Agendamentos</h2>
-          
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <FileSpreadsheet size={18} /> Exportar
-            </button>
-            <button style={{ background: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Printer size={18} /> Salvar e Imprimir
-            </button>
-          </div>
         </div>
 
         {/* Filters */}

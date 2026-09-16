@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Filter, Calendar as CalendarIcon, TrendingUp, TrendingDown, DollarSign, FileText, BarChart3, PieChart, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAppData } from '../context/AppDataContext';
 
 export default function BalancoFinanceiro() {
   const { recebimentos, despesas } = useAppData();
+
+  const [filtroDataInicio, setFiltroDataInicio] = useState('');
+  const [filtroDataFinal, setFiltroDataFinal] = useState('');
 
   const parseCurrency = (val) => {
     if (typeof val === 'number') return val;
@@ -17,12 +20,50 @@ export default function BalancoFinanceiro() {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const isDateInRange = (dateStr) => {
+    if (!dateStr) return false;
+    let refDate = null;
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) refDate = new Date(parts[2], parts[1] - 1, parts[0]);
+    } else if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) refDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
+    if (!refDate) return false;
+
+    if (filtroDataInicio) {
+      const parts = filtroDataInicio.split('-');
+      if (parts.length === 3) {
+        const startD = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (refDate < startD) return false;
+      }
+    }
+    if (filtroDataFinal) {
+      const parts = filtroDataFinal.split('-');
+      if (parts.length === 3) {
+        const endD = new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59);
+        if (refDate > endD) return false;
+      }
+    }
+    return true;
+  };
+
+  const filteredRecebimentos = (filtroDataInicio || filtroDataFinal) 
+    ? recebimentos.filter(r => isDateInRange(r.dataPagamento || r.dataVencimento))
+    : recebimentos;
+
+  const filteredDespesas = (filtroDataInicio || filtroDataFinal)
+    ? despesas.filter(d => isDateInRange(d.dataPagamento || d.dataVencimento))
+    : despesas;
+
   // Calcular totais reais (apenas PAGOS)
-  const totalReceita = recebimentos
+  const totalReceita = filteredRecebimentos
     .filter(r => r.status === 'PAGO')
     .reduce((acc, curr) => acc + parseCurrency(curr.valorPago || curr.valor), 0);
 
-  const totalDespesas = despesas
+  const totalDespesas = filteredDespesas
     .filter(d => d.status === 'PAGO')
     .reduce((acc, curr) => acc + parseCurrency(curr.valor), 0);
 
@@ -35,7 +76,7 @@ export default function BalancoFinanceiro() {
 
   // Movimentações recentes
   const movimentacoes = [
-    ...recebimentos.filter(r => r.status === 'PAGO').map(r => ({
+    ...filteredRecebimentos.filter(r => r.status === 'PAGO').map(r => ({
       id: `rec-${r.id}`,
       data: r.dataPagamento,
       descricao: `Recebimento: ${r.nomePaciente} (${r.modalidade})`,
@@ -43,7 +84,7 @@ export default function BalancoFinanceiro() {
       tipo: 'Entrada',
       valor: parseCurrency(r.valorPago || r.valor)
     })),
-    ...despesas.filter(d => d.status === 'PAGO').map(d => ({
+    ...filteredDespesas.filter(d => d.status === 'PAGO').map(d => ({
       id: `desp-${d.id}`,
       data: d.dataPagamento,
       descricao: d.descricao,
@@ -93,19 +134,13 @@ export default function BalancoFinanceiro() {
           <div>
             <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Data início</label>
             <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
-               <input type="text" defaultValue="01/07/2026" style={{ width: '120px', border: 'none', padding: '10px 16px', outline: 'none', color: 'var(--text-main)', fontWeight: 600 }} />
-               <div style={{ background: '#f1f5f9', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', borderLeft: '1px solid var(--border-color)' }}>
-                 <CalendarIcon size={18} />
-               </div>
+               <input type="date" value={filtroDataInicio} onChange={(e) => setFiltroDataInicio(e.target.value)} style={{ flex: 1, border: 'none', padding: '10px 16px', outline: 'none', color: 'var(--text-main)', fontWeight: 600 }} />
             </div>
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Data fim</label>
             <div style={{ display: 'flex', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
-               <input type="text" defaultValue="31/07/2026" style={{ width: '120px', border: 'none', padding: '10px 16px', outline: 'none', color: 'var(--text-main)', fontWeight: 600 }} />
-               <div style={{ background: '#f1f5f9', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', borderLeft: '1px solid var(--border-color)' }}>
-                 <CalendarIcon size={18} />
-               </div>
+               <input type="date" value={filtroDataFinal} onChange={(e) => setFiltroDataFinal(e.target.value)} style={{ flex: 1, border: 'none', padding: '10px 16px', outline: 'none', color: 'var(--text-main)', fontWeight: 600 }} />
             </div>
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginLeft: '16px', color: '#cbd5e1', fontWeight: 600, fontSize: '0.9rem' }}>

@@ -1,75 +1,108 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { auth, db } from '../lib/firebase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  updateProfile
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('auth_token') === 'simulated_token_123';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('current_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setIsAuthenticated(true);
+        // Fetch additional user data from Firestore
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        let userData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || 'Usuário',
+          cargo: 'Administrador' // default
+        };
 
-  const [registeredUsers, setRegisteredUsers] = useState(() => {
-    const saved = localStorage.getItem('registeredUsers');
-    return saved ? JSON.parse(saved) : [];
-  });
+        if (userDoc.exists()) {
+          userData = { ...userData, ...userDoc.data() };
+        } else {
+          // If document doesn't exist, create it
+          await setDoc(userDocRef, { name: userData.name, cargo: userData.cargo, email: userData.email });
+        }
+        
+        setCurrentUser(userData);
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+      setLoading(false);
+    });
 
-  const register = (email, password, name) => {
-    // Check if email already exists
-    if (registeredUsers.find(u => u.email === email)) {
-      return false; // Email already in use
+    return () => unsubscribe();
+  }, []);
+
+  const register = async (email, password, name) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
+      
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      await setDoc(userDocRef, {
+        name,
+        email,
+        cargo: 'Administrador'
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Error registering:", error);
+      return { success: false, error: error.message };
     }
-    
-    const newUser = { email, password, name };
-    const updatedUsers = [...registeredUsers, newUser];
-    setRegisteredUsers(updatedUsers);
-    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
-    return true;
   };
 
-  const login = (email, password) => {
-    // Check if credentials match any registered user
-    const user = registeredUsers.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-      setIsAuthenticated(true);
-      setCurrentUser(user);
-      localStorage.setItem('auth_token', 'simulated_token_123');
-      localStorage.setItem('current_user', JSON.stringify(user));
-      return true;
+  const login = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (error) {
+      console.error("Error logging in:", error);
+      return { success: false, error: error.message };
     }
-    
-    return false; // Invalid credentials
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('current_user');
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
   };
 
-  const updateUser = (updatedData) => {
-    if (currentUser) {
-      const newUser = { ...currentUser, ...updatedData };
-      setCurrentUser(newUser);
-      localStorage.setItem('current_user', JSON.stringify(newUser));
-
-      // Also update in registeredUsers
-      const updatedList = registeredUsers.map(u => u.email === currentUser.email ? newUser : u);
-      setRegisteredUsers(updatedList);
-      localStorage.setItem('registeredUsers', JSON.stringify(updatedList));
-      return true;
+  const updateUser = async (updatedData) => {
+    if (currentUser && currentUser.uid) {
+      try {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userDocRef, updatedData);
+        setCurrentUser(prev => ({ ...prev, ...updatedData }));
+        return true;
+      } catch (error) {
+        console.error("Error updating user:", error);
+        return false;
+      }
     }
     return false;
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, register, updateUser }}>
-      {children}
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, register, updateUser, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

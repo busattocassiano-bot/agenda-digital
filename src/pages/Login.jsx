@@ -11,20 +11,18 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setLoading(true);
-    // Simulando tempo de resposta do servidor
-    setTimeout(() => {
-      const success = login(email, password);
-      if (success) {
-        navigate('/');
-      } else {
-        setErrorMsg('E-mail ou senha incorretos.');
-        setLoading(false);
-      }
-    }, 800);
+
+    const result = await login(email, password);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setErrorMsg(`Erro: ${result.error}`);
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { User, Camera, X, Check, FileText, Activity, RotateCcw, CreditCard, ScanFace, Calendar, Plus, RefreshCw, Clock, Download, Pause, Square, Save, FileSpreadsheet, Printer, ArrowDownUp, ClipboardList, Paperclip, Edit, FileEdit } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { User, Camera, X, Check, FileText, Activity, RotateCcw, CreditCard, ScanFace, Calendar, Plus, RefreshCw, Clock, Download, Pause, Square, Save, FileSpreadsheet, Printer, ArrowDownUp, ClipboardList, Paperclip, Edit, FileEdit, Trash2, File } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import NovaMatriculaModal from '../components/NovaMatriculaModal';
 
 export default function PacientePerfil() {
   const { id } = useParams();
-  const { pacientes, matriculas, updateMatricula, planos, recebimentos, agendamentos, evolucoes, addEvolucao, updateEvolucao, profissionais, avaliacoes, servicos } = useAppData();
+  const { pacientes, updatePaciente, matriculas, updateMatricula, planos, recebimentos, agendamentos, evolucoes, addEvolucao, updateEvolucao, profissionais, avaliacoes, servicos } = useAppData();
   
   const paciente = pacientes.find(p => p.id === id) || { 
     nome: 'Não encontrado', 
@@ -16,12 +16,87 @@ export default function PacientePerfil() {
     endereco: { logradouro: '', bairro: '', cidade: '', uf: '' } 
   };
 
-  const matriculasDoPaciente = (matriculas || []).filter(m => String(m.pacienteId) === String(id));
-  const avaliacoesDoPaciente = (avaliacoes || []).filter(a => String(a.pacienteId) === String(id));
+  const matriculasDoPaciente = (matriculas || []).filter(m => String(m.pacienteId) === String(id) || String(m.clienteId) === String(id));
+  const avaliacoesDoPaciente = (avaliacoes || []).filter(a => String(a.pacienteId) === String(id) || String(a.clienteId) === String(id));
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [activeTab, setActiveTab] = useState('info');
+  const [expandedAvaliacaoId, setExpandedAvaliacaoId] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    nome: paciente.nome || '',
+    dataNascimento: paciente.dataNascimento || '',
+    telefone: paciente.telefone || '',
+    cpf: paciente.cpf || '',
+    profissao: paciente.profissao || '',
+    genero: paciente.genero || '',
+    estadoCivil: paciente.estadoCivil || '',
+    contatoEmergencia: paciente.contatoEmergencia || '',
+    comoConheceu: paciente.comoConheceu || '',
+    cep: paciente.cep || '',
+    endereco: paciente.endereco || { logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '' }
+  });
+
+  useEffect(() => {
+    setFormData({
+      nome: paciente.nome || '',
+      dataNascimento: paciente.dataNascimento || '',
+      telefone: paciente.telefone || '',
+      cpf: paciente.cpf || '',
+      profissao: paciente.profissao || '',
+      genero: paciente.genero || '',
+      estadoCivil: paciente.estadoCivil || '',
+      contatoEmergencia: paciente.contatoEmergencia || '',
+      comoConheceu: paciente.comoConheceu || '',
+      cep: paciente.cep || '',
+      endereco: paciente.endereco || { logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '' }
+    });
+  }, [paciente]);
+
+  const handleSaveProfile = () => {
+    updatePaciente(id, formData);
+    setToastMessage('Perfil atualizado com sucesso!');
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const [anexosList, setAnexosList] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`anexos_paciente_${id}`)) || [];
+    } catch { return []; }
+  });
+  
+  useEffect(() => {
+    localStorage.setItem(`anexos_paciente_${id}`, JSON.stringify(anexosList));
+  }, [anexosList, id]);
+
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newAnexo = {
+          id: Date.now().toString(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          date: new Date().toLocaleDateString('pt-BR'),
+          dataUrl: event.target.result
+        };
+        setAnexosList(prev => [...prev, newAnexo]);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleRemoveAnexo = (anexoId) => {
+    if (window.confirm('Tem certeza que deseja excluir este anexo?')) {
+      setAnexosList(prev => prev.filter(a => a.id !== anexoId));
+    }
+  };
   
   // Evolucao modal states
   const [evolucaoModalOpen, setEvolucaoModalOpen] = useState(false);
@@ -64,7 +139,7 @@ export default function PacientePerfil() {
 
   const combinedEvolucoesList = useMemo(() => {
     const pAgendamentos = agendamentos.filter(a => {
-      if (a.clienteId !== id) return false;
+      if (String(a.clienteId) !== String(id) && String(a.pacienteId) !== String(id)) return false;
       if (a.servico === 'Reposição' || a.tipo === 'Reposicao') return false;
       
       const srv = servicos.find(s => s.id === a.servicoId || s.nome === a.servico);
@@ -78,7 +153,7 @@ export default function PacientePerfil() {
     const mappedAgendamentos = pAgendamentos.map(a => {
       let ev = evolucoes.find(e => e.idAgendamento === a.id);
       if (!ev) {
-        ev = evolucoes.find(e => e.data === a.data.split('-').reverse().join('/') && String(e.clienteId) === String(a.clienteId));
+        ev = evolucoes.find(e => e.data === a.data.split('-').reverse().join('/') && (String(e.clienteId) === String(a.clienteId) || String(e.pacienteId) === String(a.clienteId)));
       }
       return {
         agendamento: a,
@@ -88,7 +163,7 @@ export default function PacientePerfil() {
     });
 
     const standaloneEvolucoes = evolucoes.filter(e => 
-      String(e.clienteId) === String(id) && !mappedAgendamentos.some(ma => ma.evolucao && ma.evolucao.id === e.id)
+      (String(e.clienteId) === String(id) || String(e.pacienteId) === String(id)) && !mappedAgendamentos.some(ma => ma.evolucao && ma.evolucao.id === e.id)
     ).map(e => {
       const parts = e.data.split('/');
       let dateObj = new Date();
@@ -207,11 +282,7 @@ export default function PacientePerfil() {
               style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: activeTab === 'mensalidades' ? '#f1f5f9' : 'transparent', color: activeTab === 'mensalidades' ? 'var(--text-dark)' : 'var(--text-muted)', fontWeight: activeTab === 'mensalidades' ? 600 : 500 }}>
               <CreditCard size={18} /> Mensalidades
             </div>
-            <div 
-              onClick={() => setActiveTab('anamnese')}
-              style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: activeTab === 'anamnese' ? '#f1f5f9' : 'transparent', color: activeTab === 'anamnese' ? 'var(--text-dark)' : 'var(--text-muted)', fontWeight: activeTab === 'anamnese' ? 600 : 500 }}>
-              <ClipboardList size={18} /> Anamnese
-            </div>
+
             <div 
               onClick={() => setActiveTab('anexos')}
               style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', background: activeTab === 'anexos' ? '#f1f5f9' : 'transparent', color: activeTab === 'anexos' ? 'var(--text-dark)' : 'var(--text-muted)', fontWeight: activeTab === 'anexos' ? 600 : 500 }}>
@@ -224,137 +295,138 @@ export default function PacientePerfil() {
         <div style={{ flex: 1, background: 'white', borderRadius: '12px', border: '1px solid var(--border-color)', padding: '32px' }}>
           
           {activeTab === 'info' && (
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--text-dark)', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '24px' }}>
-                Dados pessoais
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Row 1 */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Nome completo</label>
-                  <input type="text" defaultValue={paciente.nome} style={inputStyle} />
-                </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--text-dark)', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '24px' }}>
+                  Dados pessoais
+                </h3>
                 
-                {/* Row 2 */}
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Data de Nascimento</label>
-                    <div style={{ display: 'flex' }}>
-                      <div style={{ background: '#94a3b8', padding: '10px 14px', borderRadius: '8px 0 0 8px', display: 'flex', alignItems: 'center', color: 'white' }}><Calendar size={18} /></div>
-                      <input type="date" defaultValue={paciente.dataNascimento || '1994-01-04'} style={{ ...inputStyle, borderRadius: '0 8px 8px 0', borderLeft: 'none', height: '42px', color: 'var(--text-main)', fontFamily: 'inherit' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Nome completo</label>
+                    <input type="text" value={formData.nome} onChange={(e) => setFormData({...formData, nome: e.target.value})} style={inputStyle} />
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Data de Nascimento</label>
+                      <div style={{ display: 'flex' }}>
+                        <div style={{ background: '#94a3b8', padding: '10px 14px', borderRadius: '8px 0 0 8px', display: 'flex', alignItems: 'center', color: 'white' }}><Calendar size={18} /></div>
+                        <input type="date" value={formData.dataNascimento} onChange={(e) => setFormData({...formData, dataNascimento: e.target.value})} style={{ ...inputStyle, borderRadius: '0 8px 8px 0', borderLeft: 'none', height: '42px', color: 'var(--text-main)', fontFamily: 'inherit' }} />
+                      </div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Idade</label>
+                      <input type="text" value={calcularIdade(formData.dataNascimento)} readOnly style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: 'var(--text-muted)' }} />
                     </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Idade</label>
-                    <input type="text" value={calcularIdade(paciente.dataNascimento || '1994-01-04')} readOnly style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: 'var(--text-muted)' }} />
+
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Telefone</label>
+                      <input type="text" value={formData.telefone} onChange={(e) => setFormData({...formData, telefone: e.target.value})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>CPF</label>
+                      <input type="text" value={formData.cpf} onChange={(e) => setFormData({...formData, cpf: e.target.value})} style={inputStyle} />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Profissão</label>
+                      <input type="text" value={formData.profissao} onChange={(e) => setFormData({...formData, profissao: e.target.value})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Gênero</label>
+                      <select value={formData.genero} onChange={(e) => setFormData({...formData, genero: e.target.value})} style={inputStyle}>
+                        <option value="">- Selecione -</option>
+                        <option value="Feminino">Feminino</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Estado Civil</label>
+                      <select value={formData.estadoCivil} onChange={(e) => setFormData({...formData, estadoCivil: e.target.value})} style={inputStyle}>
+                        <option value="">- Selecione -</option>
+                        <option value="Solteiro(a)">Solteiro(a)</option>
+                        <option value="Casado(a)">Casado(a)</option>
+                        <option value="Divorciado(a)">Divorciado(a)</option>
+                        <option value="Viúvo(a)">Viúvo(a)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Contato de Emergência</label>
+                      <input type="text" value={formData.contatoEmergencia} onChange={(e) => setFormData({...formData, contatoEmergencia: e.target.value})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Como nos conheceu?</label>
+                      <select value={formData.comoConheceu} onChange={(e) => setFormData({...formData, comoConheceu: e.target.value})} style={inputStyle}>
+                        <option value="">Selecione...</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Google">Google / Site</option>
+                        <option value="Indicação">Indicação de amigo/paciente</option>
+                        <option value="Passou na frente">Passou na frente da clínica</option>
+                        <option value="Outros">Outros</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                {/* Row 3 */}
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Telefone</label>
-                    <input type="text" defaultValue={paciente.telefone} style={inputStyle} />
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--text-dark)', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginTop: '40px', marginBottom: '24px' }}>
+                  Endereço
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>CEP</label>
+                      <input type="text" value={formData.cep} onChange={(e) => setFormData({...formData, cep: e.target.value})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Logradouro</label>
+                      <input type="text" value={formData.endereco.logradouro} onChange={(e) => setFormData({...formData, endereco: {...formData.endereco, logradouro: e.target.value}})} style={inputStyle} />
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>CPF</label>
-                    <input type="text" defaultValue={paciente.cpf} style={inputStyle} />
+                  
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Número</label>
+                      <input type="text" value={formData.endereco.numero || ''} onChange={(e) => setFormData({...formData, endereco: {...formData.endereco, numero: e.target.value}})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Complemento</label>
+                      <input type="text" value={formData.endereco.complemento || ''} onChange={(e) => setFormData({...formData, endereco: {...formData.endereco, complemento: e.target.value}})} style={inputStyle} />
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Bairro</label>
+                      <input type="text" value={formData.endereco.bairro} onChange={(e) => setFormData({...formData, endereco: {...formData.endereco, bairro: e.target.value}})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Cidade</label>
+                      <input type="text" value={formData.endereco.cidade} onChange={(e) => setFormData({...formData, endereco: {...formData.endereco, cidade: e.target.value}})} style={inputStyle} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>UF</label>
+                      <input type="text" value={formData.endereco.uf} onChange={(e) => setFormData({...formData, endereco: {...formData.endereco, uf: e.target.value}})} style={inputStyle} />
+                    </div>
                   </div>
                 </div>
 
-                {/* Row 4 */}
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Profissão</label>
-                    <input type="text" defaultValue={paciente.profissao || ''} style={inputStyle} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Gênero</label>
-                    <select defaultValue={paciente.genero || ''} style={inputStyle}>
-                      <option value="">- Selecione -</option>
-                      <option value="Feminino">Feminino</option>
-                      <option value="Masculino">Masculino</option>
-                      <option value="Outro">Outro</option>
-                    </select>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Estado Civil</label>
-                    <select defaultValue={paciente.estadoCivil || ''} style={inputStyle}>
-                      <option value="">- Selecione -</option>
-                      <option value="Solteiro(a)">Solteiro(a)</option>
-                      <option value="Casado(a)">Casado(a)</option>
-                      <option value="Divorciado(a)">Divorciado(a)</option>
-                      <option value="Viúvo(a)">Viúvo(a)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Row 5 */}
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Contato de Emergência</label>
-                    <input type="text" defaultValue={paciente.contatoEmergencia || ''} style={inputStyle} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Como nos conheceu?</label>
-                    <select defaultValue={paciente.comoConheceu || ''} style={inputStyle}>
-                      <option value="">Selecione...</option>
-                      <option value="Instagram">Instagram</option>
-                      <option value="Facebook">Facebook</option>
-                      <option value="Google">Google / Site</option>
-                      <option value="Indicação">Indicação de amigo/paciente</option>
-                      <option value="Passou na frente">Passou na frente da clínica</option>
-                      <option value="Outros">Outros</option>
-                    </select>
-                  </div>
+                <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
+                  <button onClick={handleSaveProfile} style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '8px', padding: '12px 24px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+                    <Save size={18} /> Salvar Alterações
+                  </button>
                 </div>
               </div>
-
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--text-dark)', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginTop: '40px', marginBottom: '24px' }}>
-                Endereço
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>CEP</label>
-                    <input type="text" defaultValue={paciente.cep} style={inputStyle} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Logradouro</label>
-                    <input type="text" defaultValue={paciente.endereco?.logradouro} style={inputStyle} />
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Número</label>
-                    <input type="text" defaultValue="707" style={inputStyle} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Complemento</label>
-                    <input type="text" defaultValue="casa 3" style={inputStyle} />
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Bairro</label>
-                    <input type="text" defaultValue={paciente.endereco?.bairro} style={inputStyle} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Cidade</label>
-                    <input type="text" defaultValue={paciente.endereco?.cidade} style={inputStyle} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>UF</label>
-                    <input type="text" defaultValue={paciente.endereco?.uf} style={inputStyle} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
 
           {activeTab === 'matriculas' && (
             <div>
@@ -465,12 +537,12 @@ export default function PacientePerfil() {
                       </tr>
                     </thead>
                     <tbody>
-                      {recebimentos.filter(r => r.pacienteId === id).length === 0 ? (
+                      {recebimentos.filter(r => String(r.pacienteId) === String(id) || String(r.clienteId) === String(id)).length === 0 ? (
                         <tr>
                           <td colSpan="7" style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhuma mensalidade encontrada.</td>
                         </tr>
                       ) : (
-                        recebimentos.filter(r => r.pacienteId === id).map((rec, idx) => (
+                        recebimentos.filter(r => String(r.pacienteId) === String(id) || String(r.clienteId) === String(id)).map((rec, idx) => (
                           <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
                             <td style={{ padding: '16px' }}>
                               <span style={{ 
@@ -524,7 +596,7 @@ export default function PacientePerfil() {
                         combinedEvolucoesList.map((item, idx) => {
                           const dataStr = item.evolucao ? item.evolucao.data : item.agendamento?.data.split('-').reverse().join('/');
                           const profNome = item.evolucao ? item.evolucao.profissionalNome : profissionais.find(p => p.id === item.agendamento?.profissionalId)?.nome;
-                          const servico = item.agendamento ? item.agendamento.servico : item.evolucao?.registro;
+                          const servico = item.agendamento ? (servicos.find(s => s.id === item.agendamento.servicoId)?.nome || item.agendamento.servico) : item.evolucao?.registro;
                           
                           const hasEvolucao = !!item.evolucao;
                           
@@ -606,17 +678,55 @@ export default function PacientePerfil() {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {avaliacoesDoPaciente.map(av => (
-                      <div key={av.id} style={{ padding: '16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: '#f8fafc' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>
-                          Data da Avaliação: {av.data ? av.data.split('-').reverse().join('/') : 'N/A'}
+                    {avaliacoesDoPaciente.map(av => {
+                      const evolucoesVinculadas = evolucoes.filter(e => {
+                        if (!av.matriculaId) return false;
+                        const agend = agendamentos.find(a => a.id === e.idAgendamento);
+                        return agend && String(agend.matriculaId) === String(av.matriculaId);
+                      });
+                      const isExpanded = expandedAvaliacaoId === av.id;
+
+                      return (
+                      <div key={av.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div style={{ padding: '16px', background: '#f8fafc' }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>
+                            Data da Avaliação: {av.data ? av.data.split('-').reverse().join('/') : 'N/A'}
+                          </div>
+                          <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Matrícula ID:</strong> {av.matriculaId || 'Sem vínculo'}</div>
+                          <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Queixa Principal:</strong> <div style={{marginTop: '4px'}} dangerouslySetInnerHTML={{ __html: av.queixaPrincipal || 'N/A' }}></div></div>
+                          <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Hábitos de Vida:</strong> <div style={{marginTop: '4px'}} dangerouslySetInnerHTML={{ __html: av.habitosVida || 'N/A' }}></div></div>
+                          <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Testes Funcionais e Observações:</strong> <div style={{marginTop: '4px'}} dangerouslySetInnerHTML={{ __html: av.expectativas || 'N/A' }}></div></div>
+                          <div style={{ fontSize: '0.9rem', marginBottom: '12px' }}><strong>Plano de Tratamento:</strong> <div style={{marginTop: '4px'}} dangerouslySetInnerHTML={{ __html: av.planoTratamento || 'N/A' }}></div></div>
+                          
+                          <button 
+                            onClick={() => setExpandedAvaliacaoId(isExpanded ? null : av.id)}
+                            style={{ background: 'white', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', cursor: 'pointer' }}
+                          >
+                            {isExpanded ? 'Ocultar Evoluções' : `Ver Evoluções (${evolucoesVinculadas.length}) - DEBUG: ${evolucoes.filter(e => e.clienteId === id).length} total no pac`}
+                          </button>
                         </div>
-                        <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Queixa Principal:</strong> {av.queixaPrincipal || 'N/A'}</div>
-                        <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Hábitos de Vida:</strong> {av.habitosVida || 'N/A'}</div>
-                        <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Testes Funcionais e Observações:</strong> {av.expectativas || 'N/A'}</div>
-                        <div style={{ fontSize: '0.9rem' }}><strong>Plano de Tratamento:</strong> {av.planoTratamento || 'N/A'}</div>
+                        
+                        {isExpanded && (
+                          <div style={{ padding: '16px', borderTop: '1px solid var(--border-color)', background: 'white' }}>
+                            {evolucoesVinculadas.length === 0 ? (
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Nenhuma evolução encontrada para esta avaliação.</div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {evolucoesVinculadas.map(ev => (
+                                  <div key={ev.idAgendamento} style={{ padding: '12px', background: '#f1f5f9', borderRadius: '6px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                      <strong style={{ fontSize: '0.9rem', color: 'var(--text-dark)' }}>{ev.data}</strong>
+                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{ev.profissionalNome}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{ev.descricao}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>
@@ -630,7 +740,7 @@ export default function PacientePerfil() {
                   <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-dark)' }}>Reposições Agendadas</h2>
                 </div>
                 
-                {agendamentos.filter(a => a.clienteId === id && (a.servico === 'Reposição' || a.tipo === 'Reposicao')).length === 0 ? (
+                {agendamentos.filter(a => (String(a.clienteId) === String(id) || String(a.pacienteId) === String(id)) && (a.servico === 'Reposição' || a.tipo === 'Reposicao')).length === 0 ? (
                   <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
                     Nenhuma reposição encontrada para este paciente.
                   </div>
@@ -645,7 +755,7 @@ export default function PacientePerfil() {
                       </tr>
                     </thead>
                     <tbody>
-                      {agendamentos.filter(a => a.clienteId === id && (a.servico === 'Reposição' || a.tipo === 'Reposicao')).map((ag, idx) => (
+                      {agendamentos.filter(a => (String(a.clienteId) === String(id) || String(a.pacienteId) === String(id)) && (a.servico === 'Reposição' || a.tipo === 'Reposicao')).map((ag, idx) => (
                         <tr key={idx}>
                           <td style={{ padding: '12px', borderBottom: '1px solid var(--border-color)' }}>{ag.data.split('-').reverse().join('/')}</td>
                           <td style={{ padding: '12px', borderBottom: '1px solid var(--border-color)' }}>{ag.hora}</td>
@@ -664,65 +774,18 @@ export default function PacientePerfil() {
             </div>
           )}
 
-          {activeTab !== 'info' && activeTab !== 'matriculas' && activeTab !== 'mensalidades' && activeTab !== 'anamnese' && activeTab !== 'anexos' && activeTab !== 'evolucoes' && activeTab !== 'reposicoes' && activeTab !== 'avaliacoes' && (
+          {activeTab !== 'info' && activeTab !== 'matriculas' && activeTab !== 'mensalidades' && activeTab !== 'anexos' && activeTab !== 'evolucoes' && activeTab !== 'reposicoes' && activeTab !== 'avaliacoes' && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px', color: 'var(--text-muted)' }}>
               Aba em desenvolvimento...
             </div>
           )}
           
-          {activeTab === 'anamnese' && (
-            <div style={{ flex: 1 }}>
-              <div style={{ background: 'white', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-dark)', marginBottom: '32px' }}>Anamnese</h2>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <div style={{ display: 'flex', gap: '24px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Nome do Aluno</label>
-                      <input type="text" readOnly value="Cassiano Busatto" style={{ ...inputStyle, background: '#f1f5f9', color: '#64748b' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Data de Nascimento</label>
-                      <input type="text" readOnly value="04/01/1994" style={{ ...inputStyle, background: '#f1f5f9', color: '#64748b' }} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Queixa Principal</label>
-                    <textarea value={anamnese.queixaPrincipal} onChange={(e) => setAnamnese({...anamnese, queixaPrincipal: e.target.value})} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}></textarea>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Hábitos de Vida</label>
-                    <textarea value={anamnese.habitosVida} onChange={(e) => setAnamnese({...anamnese, habitosVida: e.target.value})} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}></textarea>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Testes Funcionais e Observações</label>
-                    <textarea value={anamnese.expectativas} onChange={(e) => setAnamnese({...anamnese, expectativas: e.target.value})} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}></textarea>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Plano de Tratamento</label>
-                    <textarea value={anamnese.planoTratamento} onChange={(e) => setAnamnese({...anamnese, planoTratamento: e.target.value})} style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}></textarea>
-                  </div>
-
-                  <div>
-                    <button style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 24px', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' }}>
-                      Salvar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {activeTab === 'anexos' && (
             <div style={{ flex: 1 }}>
               <div style={{ background: 'white', borderRadius: '12px', padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                   <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-dark)' }}>Anexos</h2>
-                  <button style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button onClick={() => fileInputRef.current.click()} style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Plus size={16} /> Adicionar Anexo
                   </button>
                 </div>
@@ -731,9 +794,43 @@ export default function PacientePerfil() {
                   Formatos aceitos: imagens (JPG, PNG), documentos (PDF, DOC, DOCX), planilhas (XLS, XLSX) e outros arquivos comuns. Vídeos não são permitidos. Tamanho máximo: 20MB.
                 </div>
 
-                <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem', padding: '40px 0' }}>
-                  Nenhum anexo encontrado
-                </div>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
+                
+                {anexosList.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem', padding: '40px 0', border: '2px dashed var(--border-color)', borderRadius: '8px' }}>
+                    <Paperclip size={32} color="#cbd5e1" style={{ marginBottom: '16px' }} />
+                    <br/>
+                    Nenhum anexo encontrado
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                    {anexosList.map(anexo => (
+                      <div key={anexo.id} style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '16px', background: '#f8fafc' }}>
+                        <div style={{ background: '#e2e8f0', width: '48px', height: '48px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {anexo.type.includes('image') ? (
+                            <img src={anexo.dataUrl} alt={anexo.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                          ) : (
+                            <File size={24} color="#64748b" />
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, color: 'var(--text-dark)', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={anexo.name}>{anexo.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            Adicionado em: {anexo.date} &bull; {(anexo.size / 1024).toFixed(1)} KB
+                          </div>
+                          <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                            <a href={anexo.dataUrl} download={anexo.name} style={{ fontSize: '0.85rem', color: '#0ea5e9', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Download size={14} /> Baixar
+                            </a>
+                            <button onClick={() => handleRemoveAnexo(anexo.id)} style={{ background: 'none', border: 'none', fontSize: '0.85rem', color: '#ef4444', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}>
+                              <Trash2 size={14} /> Excluir
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

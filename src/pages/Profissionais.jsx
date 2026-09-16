@@ -28,6 +28,16 @@ export default function Profissionais() {
   const [cidade, setCidade] = useState('');
   const [uf, setUf] = useState('');
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showInativos, setShowInativos] = useState(false);
+
+  const filteredProfissionais = profissionais.filter(p => {
+    const matchesSearch = p.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const isActive = p.statusAtivo !== false;
+    const matchesStatus = showInativos ? !isActive : isActive;
+    return matchesSearch && matchesStatus;
+  });
+
   const fetchCep = async (cepValue) => {
     const cleanCep = cepValue.replace(/\D/g, '');
     if (cleanCep.length === 8) {
@@ -116,16 +126,24 @@ export default function Profissionais() {
             <input 
               type="text" 
               placeholder="Pesquisar Profissional" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent' }} 
             />
           </div>
-          <button style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', padding: '0 24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => setSearchTerm('')} style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', padding: '0 24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={24} />
           </button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', paddingLeft: '4px' }}>
-          <input type="checkbox" id="inativos_profissionais" style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)' }} />
+          <input 
+            type="checkbox" 
+            id="inativos_profissionais" 
+            checked={showInativos}
+            onChange={(e) => setShowInativos(e.target.checked)}
+            style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)', cursor: 'pointer' }} 
+          />
           <label htmlFor="inativos_profissionais" style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer' }}>
             Exibir apenas Profissionais inativos.
           </label>
@@ -163,12 +181,12 @@ export default function Profissionais() {
               </tr>
             </thead>
             <tbody>
-              {profissionais.length === 0 ? (
+              {filteredProfissionais.length === 0 ? (
                 <tr style={{ background: 'white' }}>
                   <td colSpan="5" style={{ padding: '16px', color: 'var(--text-muted)', textAlign: 'center' }}>Nenhum profissional cadastrado.</td>
                 </tr>
               ) : (
-                profissionais.map((prof) => (
+                filteredProfissionais.map((prof) => (
                   <tr key={prof.id} style={{ borderBottom: '1px solid var(--border-color)', background: 'white' }}>
                     <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>{prof.cpf || '000.000.000-00'}</td>
                     <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500, fontSize: '0.95rem' }}>{prof.nome}</td>

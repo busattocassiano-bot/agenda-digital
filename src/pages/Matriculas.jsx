@@ -6,6 +6,25 @@ import NovaMatriculaModal from '../components/NovaMatriculaModal';
 export default function Matriculas() {
   const { pacientes, matriculas, servicos, planos, addMatricula, addRecebimento, profissionais, addAgendamento } = useAppData();
   const [modalOpen, setModalOpen] = useState(false);
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Ativos');
+
+  const filteredMatriculas = matriculas.filter(matricula => {
+    const p = pacientes.find(pac => String(pac.id) === String(matricula.pacienteId));
+    const nomeAluno = p ? p.nome : (matricula.paciente || 'Desconhecido');
+    
+    const matchesSearch = nomeAluno.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const isAtiva = matricula.status?.toLowerCase() === 'ativa' || matricula.status?.toLowerCase() === 'ativo';
+    
+    let matchesStatus = true;
+    if (statusFilter === 'Ativos') matchesStatus = isAtiva;
+    if (statusFilter === 'Inativos') matchesStatus = !isAtiva;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
@@ -19,18 +38,29 @@ export default function Matriculas() {
             <input 
               type="text" 
               placeholder="Informe o nome do Aluno" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent' }} 
             />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            )}
           </div>
           
           {/* Status Select */}
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px 20px', gap: '12px', boxShadow: 'var(--shadow-sm)' }}>
              <Filter size={20} color="var(--text-main)" />
              <span style={{ color: 'var(--text-main)', fontWeight: 600, marginRight: '8px' }}>Status</span>
-             <select style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent', cursor: 'pointer' }}>
-               <option>Ativos</option>
-               <option>Inativos</option>
-               <option>Todos</option>
+             <select 
+               value={statusFilter}
+               onChange={(e) => setStatusFilter(e.target.value)}
+               style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent', cursor: 'pointer' }}
+             >
+               <option value="Ativos">Ativos</option>
+               <option value="Inativos">Inativos</option>
+               <option value="Todos">Todos</option>
              </select>
           </div>
         </div>
@@ -40,24 +70,9 @@ export default function Matriculas() {
       <div className="card" style={{ padding: '24px' }}>
         <div className="flex-between" style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#1e293b' }}>Relação de Alunos e Matrículas</h2>
-          
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <FileSpreadsheet size={18} /> Exportar para Excel
-            </button>
-            <button 
-              onClick={() => setModalOpen(true)}
-              style={{ background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-            >
-              <Plus size={20} />
-            </button>
-            <button style={{ background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <RefreshCw size={20} />
-            </button>
-          </div>
         </div>
 
-        {matriculas.length === 0 ? (
+        {filteredMatriculas.length === 0 ? (
           <div style={{ background: '#fef08a', color: '#854d0e', padding: '16px 20px', borderRadius: '8px', fontSize: '0.95rem' }}>
             <strong style={{ fontWeight: 700 }}>Atenção!</strong> <span style={{ fontWeight: 500 }}>Nenhum registro foi encontrado.</span>
           </div>
@@ -74,7 +89,7 @@ export default function Matriculas() {
                 </tr>
               </thead>
               <tbody>
-                {matriculas.map(matricula => {
+                {filteredMatriculas.map(matricula => {
                   const p = pacientes.find(pac => String(pac.id) === String(matricula.pacienteId));
                   const nomeAluno = p ? p.nome : (matricula.paciente || 'Desconhecido');
                   const isAtiva = matricula.status?.toLowerCase() === 'ativa' || matricula.status?.toLowerCase() === 'ativo';

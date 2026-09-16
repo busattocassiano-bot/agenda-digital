@@ -76,9 +76,6 @@ export default function RelatorioComissoes() {
 
   const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-  const printReport = () => {
-    window.print();
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -124,12 +121,6 @@ export default function RelatorioComissoes() {
           <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#1e293b' }}>Repasses e Comissões</h2>
           
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{ background: '#16a34a', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <FileSpreadsheet size={18} /> Exportar
-            </button>
-            <button onClick={printReport} style={{ background: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Printer size={18} /> Imprimir
-            </button>
           </div>
         </div>
 

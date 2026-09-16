@@ -13,6 +13,11 @@ export default function Servicos() {
   const [duracao, setDuracao] = useState('60'); // Default duration
   const [exigeEvolucao, setExigeEvolucao] = useState(true);
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredServicos = servicos.filter(s => 
+    s.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleOpenNew = () => {
     setNome('');
@@ -67,6 +72,8 @@ export default function Servicos() {
           <input 
             type="text" 
             placeholder="Informe o nome da Modalidade" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent' }} 
           />
         </div>
@@ -107,12 +114,12 @@ export default function Servicos() {
               </tr>
             </thead>
             <tbody>
-              {servicos.length === 0 ? (
+              {filteredServicos.length === 0 ? (
                 <tr style={{ background: 'white' }}>
-                  <td colSpan="3" style={{ padding: '16px', color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.95rem' }}>Nenhum serviço encontrado.</td>
+                  <td colSpan="4" style={{ padding: '16px', color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.95rem' }}>Nenhum serviço encontrado.</td>
                 </tr>
               ) : (
-                servicos.map(servico => (
+                filteredServicos.map(servico => (
                   <tr key={servico.id} style={{ borderBottom: '1px solid var(--border-color)', background: 'white' }}>
                     <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: servico.cor || '#fda4af' }}></div>

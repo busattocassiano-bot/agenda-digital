@@ -74,7 +74,7 @@ export default function NovaMatriculaModal({ isOpen, onClose, initialPacienteId 
     }
   }, [planoSelecionado, planos]);
 
-  const handleSaveMatricula = () => {
+  const handleSaveMatricula = async () => {
     if (!pacienteId || !modalidade || !planoSelecionado) {
       alert("Preencha todos os campos obrigatórios");
       return;
@@ -156,7 +156,7 @@ export default function NovaMatriculaModal({ isOpen, onClose, initialPacienteId 
       status: 'Ativa'
     };
 
-    const novaMatriculaId = addMatricula(novaMatricula);
+    const novaMatriculaId = await addMatricula(novaMatricula);
 
     if (isRecorrenteOrPackage) {
       let current = new Date(dataInicio + 'T00:00:00');
@@ -172,7 +172,7 @@ export default function NovaMatriculaModal({ isOpen, onClose, initialPacienteId 
         
         if (recurrenceConfig && recurrenceConfig.checked) {
           addAgendamento({
-            clienteId: parseInt(pacienteId),
+            clienteId: pacienteId,
             matriculaId: novaMatriculaId,
             nomeNaoCadastrado: '',
             telefoneNaoCadastrado: '',
@@ -191,7 +191,7 @@ export default function NovaMatriculaModal({ isOpen, onClose, initialPacienteId 
     } else {
       // Agendamento Único para Avulso
       addAgendamento({
-        clienteId: parseInt(pacienteId),
+        clienteId: pacienteId,
         matriculaId: novaMatriculaId,
         nomeNaoCadastrado: '',
         telefoneNaoCadastrado: '',

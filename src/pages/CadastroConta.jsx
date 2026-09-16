@@ -13,7 +13,7 @@ export default function CadastroConta() {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     
@@ -23,17 +23,15 @@ export default function CadastroConta() {
     }
 
     setLoading(true);
-    // Simulando tempo de resposta do servidor
-    setTimeout(() => {
-      const success = register(email, password, name);
-      if (success) {
-        alert('Conta criada com sucesso! Faça login para continuar.');
-        navigate('/login');
-      } else {
-        setErrorMsg('Este e-mail já está em uso.');
-        setLoading(false);
-      }
-    }, 800);
+    
+    const result = await register(email, password, name);
+    if (result.success) {
+      alert('Conta criada com sucesso! Faça login para continuar.');
+      navigate('/login');
+    } else {
+      setErrorMsg(`Erro do Google: ${result.error}`);
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,7 +64,7 @@ export default function CadastroConta() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Alessandra Donato"
+              placeholder="Ex: Nome e Sobrenome"
               style={{ width: '100%', padding: '12px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', backgroundColor: '#f8fafc' }} 
             />
           </div>

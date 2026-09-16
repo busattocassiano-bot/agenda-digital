@@ -33,15 +33,25 @@ export default function Dashboard() {
   
 
   // Receitas e Despesas (Mês Atual)
-  const mesAtualStr = format(hoje, 'MM/yyyy');
+  const mesAtualYMD = format(hoje, 'yyyy-MM');
   
+  const parseCurrency = (val) => {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    if (typeof val === 'string') {
+        const clean = val.replace(/\./g, '').replace(',', '.');
+        return parseFloat(clean) || 0;
+    }
+    return 0;
+  };
+
   const receitaMes = recebimentos
-    .filter(r => r.dataVencimento.includes(mesAtualStr) || (r.dataPagamento && r.dataPagamento.includes(mesAtualStr)))
-    .reduce((acc, curr) => acc + (curr.valorPago || 0), 0);
+    .filter(r => (r.dataVencimento && r.dataVencimento.startsWith(mesAtualYMD)) || (r.dataPagamento && r.dataPagamento.startsWith(mesAtualYMD)))
+    .reduce((acc, curr) => acc + parseCurrency(curr.valorPago || curr.valor), 0);
     
   const despesaMes = despesas
-    .filter(d => d.dataVencimento.includes(mesAtualStr) || (d.dataPagamento && d.dataPagamento.includes(mesAtualStr)))
-    .reduce((acc, curr) => acc + (curr.valorPago || 0), 0);
+    .filter(d => (d.dataVencimento && d.dataVencimento.startsWith(mesAtualYMD)) || (d.dataPagamento && d.dataPagamento.startsWith(mesAtualYMD)))
+    .reduce((acc, curr) => acc + parseCurrency(curr.valorPago || curr.valor), 0);
 
   // Aniversariantes do Mês
   const mesAtualNum = hoje.getMonth() + 1;
@@ -125,15 +135,11 @@ export default function Dashboard() {
       {/* 2 Cards Intermediários */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         <div className="card">
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '24px' }}>Agendas de Hoje</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '24px', textAlign: 'center' }}>Agendas de Hoje</h3>
+          <div style={{ display: 'flex', justifyContent: 'center', textAlign: 'center' }}>
             <div>
               <h2 style={{ fontSize: '2rem', marginBottom: '8px' }}>{agendasFixa}</h2>
               <span style={{ background: '#f3e8ff', color: '#9333ea', padding: '4px 12px', borderRadius: '16px', fontSize: '0.75rem', fontWeight: 600 }}>Agenda Fixa</span>
-            </div>
-            <div>
-              <h2 style={{ fontSize: '2rem', marginBottom: '8px' }}>{agendasRepor}</h2>
-              <span style={{ background: '#ffedd5', color: '#ea580c', padding: '4px 12px', borderRadius: '16px', fontSize: '0.75rem', fontWeight: 600 }}>Reposições</span>
             </div>
           </div>
         </div>

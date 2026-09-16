@@ -3,6 +3,7 @@ import { X, Check, ChevronRight, User, Stethoscope, FileText, ArrowRight, CheckC
 import { useAppData } from '../context/AppDataContext';
 import { maskCpf, maskTelefone, maskCep } from '../utils/masks';
 import { checkOverlapsAndCapacity } from '../utils/agendamentoUtils';
+import RichTextEditor from './RichTextEditor';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -29,9 +30,20 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   const { addPaciente, updatePaciente, addAvaliacao, addMatricula, addRecebimento, updateAgendamento, addAgendamento, servicos, planos, profissionais, agendamentos, pacientes } = useAppData();
   
   const [step, setStep] = useState(1);
-  
-  // Step 1: Cadastro
-  const [pacienteData, setPacienteData] = useState({
+    // Step 1: Cadastro
+  const [pacienteData, setPacienteData] = useState(() => {
+    if (clienteId) {
+      const existing = pacientes.find(p => String(p.id) === String(clienteId));
+      if (existing) {
+        return {
+          ...existing,
+          nome: existing.nome || initialNome || '',
+          telefone: existing.telefone || initialTelefone || '',
+          endereco: existing.endereco || { logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', uf: '' }
+        };
+      }
+    }
+    return {
     nome: initialNome || '',
     telefone: initialTelefone || '',
     cpf: '',
@@ -46,6 +58,7 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
     statusAtivo: true,
     comoConheceu: '',
     observacao: ''
+    };
   });
 
   // Step 2: Avaliação
@@ -98,6 +111,13 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   useEffect(() => {
     if (isOpen) {
       let nextStep = 1;
+      let agendamentoProfissionalId = '';
+      if (agendamentoId) {
+          const ag = agendamentos.find(a => String(a.id) === String(agendamentoId));
+          if (ag) {
+              agendamentoProfissionalId = ag.profissionalId || '';
+          }
+      }
       
       let initialPacienteData = {
         nome: initialNome || '',
@@ -151,7 +171,7 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
         diaVencimento: '10',
         dataInicio: new Date().toISOString().split('T')[0],
         dataFinal: '',
-        profissionalId: '',
+        profissionalId: agendamentoProfissionalId,
         avulsoHora: '08:00',
         avulsoHoraFim: '09:00',
         diasRecorrentes: {
@@ -173,16 +193,16 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
     setStep(step + 1);
   };
 
-  const handleSkipMatricula = () => {
+  const handleSkipMatricula = async () => {
     try {
-      concluirFluxo(false);
+      await concluirFluxo(false);
     } catch (err) {
       alert("Erro ao Salvar: " + err.message);
       console.error(err);
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!matriculaData.plano || !matriculaData.modalidade) {
       alert("Por favor, selecione o plano e serviço para prosseguir com a matrícula.\nOu clique em 'Pular Matrícula' se não desejar cadastrar um plano agora.");
       return;
@@ -251,34 +271,29 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
     }
 
     try {
-      concluirFluxo(true);
+      await concluirFluxo(true);
     } catch (err) {
       alert("Erro ao Salvar: " + err.message);
       console.error(err);
     }
   };
 
-  const concluirFluxo = (comMatricula) => {
+  const concluirFluxo = async (comMatricula) => {
     // 1. Criar Paciente (ou atualizar existente)
     let finalPacienteId = clienteId;
     let finalPacienteNome = pacienteData.nome;
 
     if (!clienteId) {
-      finalPacienteId = addPaciente(pacienteData);
+      finalPacienteId = await addPaciente(pacienteData);
     } else {
       updatePaciente(clienteId, pacienteData);
     }
 
-    // 2. Criar Avaliação (linkada ao paciente)
-    addAvaliacao({
-      ...avaliacaoData,
-      pacienteId: finalPacienteId,
-      data: new Date().toISOString().split('T')[0]
-    });
+    let novaMatriculaId = null;
 
-    // 3. Criar Matrícula e Cobrança Inicial (opcional)
+    // 2. Criar Matrícula e Cobrança Inicial (opcional)
     if (comMatricula) {
-      const novaMatriculaId = addMatricula({
+      novaMatriculaId = await addMatricula({
         ...matriculaData,
         pacienteId: finalPacienteId,
         paciente: finalPacienteNome,
@@ -305,8 +320,9 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
               nomeNaoCadastrado: '',
               telefoneNaoCadastrado: '',
               profissionalId: matriculaData.profissionalId,
-              servico: matriculaData.modalidade,
-              data: current.toISOString().split('T')[0],
+                servico: matriculaData.modalidade,
+                servicoId: servicos.find(s => s.nome === matriculaData.modalidade)?.id || '',
+                data: current.toISOString().split('T')[0],
               hora: recurrenceConfig.hora,
               horaFim: recurrenceConfig.horaFim,
               isPacienteNaoCadastrado: false,
@@ -317,15 +333,16 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
           current.setDate(current.getDate() + 1);
         }
       } else {
-        // Agendamento Único para Avulso
+        // Agendamento único para Avulso
         addAgendamento({
           clienteId: finalPacienteId,
           matriculaId: novaMatriculaId,
           nomeNaoCadastrado: '',
           telefoneNaoCadastrado: '',
           profissionalId: matriculaData.profissionalId,
-          servico: matriculaData.modalidade,
-          data: matriculaData.dataInicio,
+            servico: matriculaData.modalidade,
+            servicoId: servicos.find(s => s.nome === matriculaData.modalidade)?.id || '',
+            data: matriculaData.dataInicio,
           hora: matriculaData.avulsoHora,
           horaFim: matriculaData.avulsoHoraFim,
           isPacienteNaoCadastrado: false,
@@ -368,14 +385,25 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
       }
     }
 
-    // 4. Atualizar o Agendamento (remover flag não cadastrado e linkar ID)
+    // 3. Criar Avaliação (linkada ao paciente E à matrícula)
+    addAvaliacao({
+      ...avaliacaoData,
+      pacienteId: finalPacienteId,
+      matriculaId: novaMatriculaId,
+      data: new Date().toISOString().split('T')[0]
+    });
+
+    // 4. Atualizar o Agendamento da avaliação original
     if (agendamentoId) {
       updateAgendamento(agendamentoId, {
         isPacienteNaoCadastrado: false,
         clienteId: finalPacienteId,
+        matriculaId: novaMatriculaId,
+        nomePacienteNovo: null,
+        telefonePacienteNovo: null,
         nomeNaoCadastrado: '',
         telefoneNaoCadastrado: '',
-        status: 'realizado'
+        status: 'Realizado'
       });
     }
 
@@ -470,7 +498,7 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
         {/* Header */}
         <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', borderBottom: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--text-dark)', fontSize: '1.1rem' }}>
-            Recepcionar Novo Aluno (Avaliação)
+            Avaliação
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
             <X size={20} />
@@ -699,26 +727,26 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
 
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeIn 0.3s ease' }}>
-              <h3 style={{ fontSize: '1rem', color: 'var(--text-dark)', marginBottom: '8px' }}>Ficha Fisioterapêutica</h3>
+              <h3 style={{ fontSize: '1rem', color: 'var(--text-dark)', marginBottom: '8px' }}>Ficha de Avaliação</h3>
               
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Queixa Principal</label>
-                <textarea rows="3" value={avaliacaoData.queixaPrincipal} onChange={e => setAvaliacaoData({...avaliacaoData, queixaPrincipal: e.target.value})} placeholder="Descreva a queixa do paciente..." style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', resize: 'vertical' }}></textarea>
+                <RichTextEditor value={avaliacaoData.queixaPrincipal} onChange={(val) => setAvaliacaoData({...avaliacaoData, queixaPrincipal: val})} placeholder="Descreva a queixa do paciente..." minHeight="150px" />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Hábitos de Vida</label>
-                <textarea rows="4" value={avaliacaoData.habitosVida} onChange={e => setAvaliacaoData({...avaliacaoData, habitosVida: e.target.value})} placeholder="Descreva os hábitos, atividades, etc..." style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', resize: 'vertical' }}></textarea>
+                <RichTextEditor value={avaliacaoData.habitosVida} onChange={(val) => setAvaliacaoData({...avaliacaoData, habitosVida: val})} placeholder="Descreva os hábitos, atividades, etc..." minHeight="100px" />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Testes Funcionais e Observações</label>
-                <textarea rows="4" value={avaliacaoData.expectativas} onChange={e => setAvaliacaoData({...avaliacaoData, expectativas: e.target.value})} placeholder="Testes funcionais e observações adicionais..." style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', resize: 'vertical' }}></textarea>
+                <RichTextEditor value={avaliacaoData.expectativas} onChange={(val) => setAvaliacaoData({...avaliacaoData, expectativas: val})} placeholder="Testes funcionais e observações adicionais..." minHeight="100px" />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Plano de Tratamento</label>
-                <textarea rows="3" value={avaliacaoData.planoTratamento} onChange={e => setAvaliacaoData({...avaliacaoData, planoTratamento: e.target.value})} placeholder="Objetivos e condutas..." style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', resize: 'vertical' }}></textarea>
+                <RichTextEditor value={avaliacaoData.planoTratamento} onChange={(val) => setAvaliacaoData({...avaliacaoData, planoTratamento: val})} placeholder="Objetivos e condutas..." minHeight="100px" />
               </div>
             </div>
           )}
@@ -783,26 +811,10 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
                       style={{ width: '100%', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', backgroundColor: '#fff', color: 'var(--text-main)', fontSize: '0.95rem' }} 
                     />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)', marginBottom: '8px' }}>Dia de Vencimento</label>
-                    <select
-                      value={matriculaData.diaVencimento}
-                      onChange={(e) => setMatriculaData({ ...matriculaData, diaVencimento: e.target.value })}
-                      style={{ width: '100%', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', backgroundColor: '#fff', color: 'var(--text-main)' }}
-                    >
-                      {[5, 10, 15, 20, 25].map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                  </div>
+                  
                 </div>
 
-                <div style={{ padding: '16px', background: '#e0f2fe', borderRadius: '8px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                  <CheckCircle2 size={20} color="#0284c7" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#0369a1', lineHeight: '1.5' }}>
-                    As parcelas deste plano serão geradas <strong>automaticamente</strong> no Contas a Receber após salvar.
-                  </p>
-                </div>
+                
               </div>
 
               <div style={{ marginTop: '32px', padding: '24px', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border-color)' }}>

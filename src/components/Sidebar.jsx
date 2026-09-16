@@ -12,7 +12,7 @@ export default function Sidebar() {
   const [relatoriosOpen, setRelatoriosOpen] = useState(true);
   const { companyData } = useCompany();
   const { currentUser, logout } = useAuth();
-  const { resetData } = useAppData();
+  
 
   const firstName = currentUser?.name ? currentUser.name.split(' ')[0] : 'Profissional';
   const lastName = currentUser?.name ? currentUser.name.split(' ').slice(1).join(' ') : '';
@@ -102,14 +102,8 @@ export default function Sidebar() {
               <NavLink to="/profissionais" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
                 Profissionais
               </NavLink>
-              <NavLink to="/cargos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
-                Cargos
-              </NavLink>
               <NavLink to="/feriados" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
                 Feriados
-              </NavLink>
-              <NavLink to="/grupos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
-                Grupos
               </NavLink>
             </div>
           )}
@@ -170,11 +164,8 @@ export default function Sidebar() {
               <NavLink to="/relatorio-aulas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
                 Relatório de aulas
               </NavLink>
-              <NavLink to="/alunos-experimentais" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
-                Alunos experimentais
-              </NavLink>
-              <NavLink to="/relatorio-matriculas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
-                Relatório matrículas
+              <NavLink to="/relatorio-fechamento" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
+                Fechamento (NF)
               </NavLink>
               <NavLink to="/relatorio-comissoes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
                 Comissões
@@ -183,20 +174,10 @@ export default function Sidebar() {
           )}
         </div>
 
-        <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
-          <button 
-            onClick={() => {
-              if (window.confirm('Tem certeza que deseja APAGAR todos os Clientes, Agendamentos e Matrículas para testes? (Serviços, Planos e Profissionais serão mantidos)')) {
-                resetData();
-              }
-            }}
-            style={{ width: '100%', background: '#fee2e2', color: '#ef4444', border: '1px dashed #ef4444', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
-          >
-            Zerar Clientes e Agenda
-          </button>
-        </div>
+        
 
       </nav>
     </aside>
   );
 }
+

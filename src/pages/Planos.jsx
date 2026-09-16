@@ -16,6 +16,18 @@ export default function Planos() {
   const [qtdSessoes, setQtdSessoes] = useState('');
   const [editingId, setEditingId] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterModalidade, setFilterModalidade] = useState('Todas');
+  const [showInativos, setShowInativos] = useState(false);
+
+  const filteredPlanos = planos.filter(p => {
+    const matchesSearch = p.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesModalidade = filterModalidade === 'Todas' || p.modalidade === filterModalidade;
+    const isActive = p.statusAtivo !== false;
+    const matchesStatus = showInativos ? !isActive : isActive;
+    return matchesSearch && matchesModalidade && matchesStatus;
+  });
+
   const handleOpenNew = () => {
     setNome('');
     setModalidade('');
@@ -66,7 +78,7 @@ export default function Planos() {
   
   const handleSave = () => {
     if (nome) {
-      const planoData = { nome, modalidade, preco, atendimentoIndividual, mensalidadeProporcional, aulasFixas, qtdSessoes: qtdSessoes ? parseInt(qtdSessoes) : null };
+      const planoData = { nome, modalidade, preco, atendimentoIndividual, aulasFixas, qtdSessoes: qtdSessoes ? parseInt(qtdSessoes) : null };
       if (editingId) {
         updatePlano(editingId, planoData);
       } else {
@@ -100,6 +112,8 @@ export default function Planos() {
             <input 
               type="text" 
               placeholder="Informe o nome do Plano" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent' }} 
             />
           </div>
@@ -108,14 +122,27 @@ export default function Planos() {
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px 20px', gap: '12px', boxShadow: 'var(--shadow-sm)' }}>
              <Filter size={20} color="var(--text-main)" />
              <span style={{ color: 'var(--text-main)', fontWeight: 600, marginRight: '8px' }}>Modalidade</span>
-             <select style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent', cursor: 'pointer' }}>
-               <option>Todas</option>
+             <select 
+               value={filterModalidade}
+               onChange={(e) => setFilterModalidade(e.target.value)}
+               style={{ border: 'none', outline: 'none', flex: 1, fontSize: '1rem', color: 'var(--text-main)', background: 'transparent', cursor: 'pointer' }}
+             >
+               <option value="Todas">Todas</option>
+               {servicos && servicos.map(s => (
+                 <option key={s.id} value={s.nome}>{s.nome}</option>
+               ))}
              </select>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', paddingLeft: '4px' }}>
-          <input type="checkbox" id="inativos_planos" style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)' }} />
+          <input 
+            type="checkbox" 
+            id="inativos_planos" 
+            checked={showInativos}
+            onChange={(e) => setShowInativos(e.target.checked)}
+            style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)', cursor: 'pointer' }} 
+          />
           <label htmlFor="inativos_planos" style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer' }}>
             Exibir apenas planos inativos.
           </label>
@@ -150,19 +177,19 @@ export default function Planos() {
                 <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Preço</th>
                 <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Sessões semana</th>
                 <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Justificativas</th>
-                <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Aulas Fixas?</th>
+                <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Recorrente?</th>
                 <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Qtd. Sessões</th>
                 <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem' }}>Personal?</th>
                 <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.95rem', textAlign: 'center' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {planos.length === 0 ? (
+              {filteredPlanos.length === 0 ? (
                 <tr style={{ background: 'white' }}>
                   <td colSpan="9" style={{ padding: '16px', color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.95rem' }}>Nenhum plano encontrado.</td>
                 </tr>
               ) : (
-                planos.map(plano => (
+                filteredPlanos.map(plano => (
                   <tr key={plano.id} style={{ borderBottom: '1px solid var(--border-color)', background: 'white' }}>
                     <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>{plano.modalidade}</td>
                     <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>{plano.nome}</td>
@@ -236,18 +263,16 @@ export default function Planos() {
 
               {/* Row 2 (Checkboxes) */}
               <div style={{ display: 'flex', gap: '48px', alignItems: 'center', marginTop: '4px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={atendimentoIndividual} onChange={(e) => setAtendimentoIndividual(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
-                  Atendimento individual? <Info size={14} color="var(--text-muted)" />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={mensalidadeProporcional} onChange={(e) => setMensalidadeProporcional(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
-                  Calcula mensalidade proporcional? <Info size={14} color="var(--text-muted)" />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={aulasFixas} onChange={(e) => setAulasFixas(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
-                  Aulas/Sessões fixas? <Info size={14} color="var(--text-muted)" />
-                </label>
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={atendimentoIndividual} onChange={(e) => setAtendimentoIndividual(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
+                    Atendimento individual? <Info size={14} color="var(--text-muted)" />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={aulasFixas} onChange={(e) => setAulasFixas(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }} />
+                    Recorrente? <Info size={14} color="var(--text-muted)" />
+                  </label>
+                </div>
               </div>
 
               {/* Row 3 & 4 (Justificativas) */}

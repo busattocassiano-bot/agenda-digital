@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  ChevronLeft, ChevronRight, Plus, RefreshCw, Filter, 
+  ChevronLeft, ChevronRight, Plus, RefreshCw, Filter, ZoomIn, ZoomOut, 
   LayoutList, LayoutGrid, Calendar as CalendarIcon, X, FileEdit, CheckCircle2, XCircle, User, CreditCard, AlertCircle
 } from 'lucide-react';
 import { 
@@ -22,6 +22,7 @@ export default function Agenda() {
   } = useAppData();
 
   const [view, setView] = useState('tabela');
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [interval, setInterval] = useState(30);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState('semana'); // 'dia', 'semana', 'mes'
@@ -149,7 +150,7 @@ export default function Agenda() {
   } else {
     // semana
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       days.push(addDays(weekStart, i));
     }
   }
@@ -393,7 +394,10 @@ export default function Agenda() {
               {/* Header and Controls */}
         <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', gap: '24px' }}>
-                {aniversariantes.length > 0 && (
+                <div>
+                  <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px', marginTop: 0 }}>Agenda</h1>
+                </div>
+                {aniversariantes.length > 0 ? (
                     <div style={{
                         background: '#f2f5ed',
                         borderRadius: '8px',
@@ -415,6 +419,19 @@ export default function Agenda() {
                                </div>
                            ))}
                        </div>
+                    </div>
+                ) : (
+                    <div style={{
+                        background: '#f8fafc',
+                        borderRadius: '8px',
+                        padding: '12px 20px',
+                        minWidth: '280px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px dashed var(--border-color)'
+                    }}>
+                        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>Nenhum aniversariante neste mês.</p>
                     </div>
                 )}
             </div>
@@ -458,7 +475,11 @@ export default function Agenda() {
                 setAgendamentoModalOpen(true);
               }} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer' }}><Plus size={18} /></button>
               <button style={{ background: '#f1f5f9', color: 'var(--text-main)', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer' }}><RefreshCw size={18} /></button>
-            </div>
+                <div style={{ display: 'flex', background: 'white', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)', marginLeft: '8px' }}>
+                  <button onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.25))} style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)', border: 'none', borderRight: '1px solid var(--border-color)', cursor: 'pointer' }} title="Diminuir Zoom"><ZoomOut size={18} /></button>
+                  <button onClick={() => setZoomLevel(Math.min(3, zoomLevel + 0.25))} style={{ padding: '8px', background: 'transparent', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }} title="Aumentar Zoom"><ZoomIn size={18} /></button>
+                </div>
+              </div>
           </div>
         </div>
       </div>
@@ -584,7 +605,7 @@ export default function Agenda() {
                         style={{ 
                           borderRight: '1px solid var(--border-color)', 
                           borderBottom: '1px solid var(--border-color)', 
-                          height: '60px',
+                          height: `${60 * zoomLevel}px`,
                           background: isSameDay(day, new Date()) ? '#f8fafc' : 'white',
                           cursor: feriado ? 'not-allowed' : 'pointer',
                           verticalAlign: 'top',

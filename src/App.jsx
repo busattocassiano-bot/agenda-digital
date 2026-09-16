@@ -16,8 +16,7 @@ import ControleDespesas from './pages/ControleDespesas';
 import FechamentoComissao from './pages/FechamentoComissao';
 import BalancoFinanceiro from './pages/BalancoFinanceiro';
 import RelatorioAulas from './pages/RelatorioAulas';
-import AlunosExperimentais from './pages/AlunosExperimentais';
-import RelatorioMatriculas from './pages/RelatorioMatriculas';
+import RelatorioFechamento from './pages/RelatorioFechamento';
 import RelatorioComissoes from './pages/RelatorioComissoes';
 import Perfil from './pages/Perfil';
 import Empresa from './pages/Empresa';
@@ -27,9 +26,7 @@ import PacientePerfil from './pages/PacientePerfil';
 import Servicos from './pages/Servicos';
 import Planos from './pages/Planos';
 import Profissionais from './pages/Profissionais';
-import Cargos from './pages/Cargos';
 import Feriados from './pages/Feriados';
-import Grupos from './pages/Grupos';
 
 import { AppDataProvider } from './context/AppDataContext';
 
@@ -54,9 +51,7 @@ function App() {
           <Route path="servicos" element={<Servicos />} />
           <Route path="planos" element={<Planos />} />
           <Route path="profissionais" element={<Profissionais />} />
-          <Route path="cargos" element={<Cargos />} />
           <Route path="feriados" element={<Feriados />} />
-          <Route path="grupos" element={<Grupos />} />
 
           <Route path="evolucoes" element={<Evolucoes />} />
           <Route path="matriculas" element={<Matriculas />} />
@@ -68,8 +63,7 @@ function App() {
           <Route path="balanco-financeiro" element={<BalancoFinanceiro />} />
 
           <Route path="relatorio-aulas" element={<RelatorioAulas />} />
-          <Route path="alunos-experimentais" element={<AlunosExperimentais />} />
-          <Route path="relatorio-matriculas" element={<RelatorioMatriculas />} />
+          <Route path="relatorio-fechamento" element={<RelatorioFechamento />} />
           <Route path="relatorio-comissoes" element={<RelatorioComissoes />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="empresa" element={<Empresa />} />
