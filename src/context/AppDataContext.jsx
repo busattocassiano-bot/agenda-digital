@@ -132,7 +132,44 @@ export function AppDataProvider({ children }) {
   const addFeriado = (feriado) => addDocument('feriados', feriado);
   const removeFeriado = (id) => deleteDocument('feriados', id);
 
+  
+  const limparOrfaos = async () => {
+    let count = 0;
+    // 1. Agendamentos orfaos (que não são bloqueios e não têm paciente correspondente)
+    const agendsToDel = agendamentos.filter(a => a.tipo !== 'bloqueio' && a.clienteId && !pacientes.some(p => p.id === a.clienteId));
+    for (const a of agendsToDel) {
+      await deleteDocument('agendamentos', a.id);
+      count++;
+    }
+    // 2. Evolucoes orfas
+    const evoToDel = evolucoes.filter(e => e.clienteId && !pacientes.some(p => p.id === e.clienteId));
+    for (const e of evoToDel) {
+      await deleteDocument('evolucoes', e.id);
+      count++;
+    }
+    // 3. Recebimentos orfaos
+    const recToDel = recebimentos.filter(r => r.clienteId && !pacientes.some(p => p.id === r.clienteId));
+    for (const r of recToDel) {
+      await deleteDocument('recebimentos', r.id);
+      count++;
+    }
+    // 4. Avaliacoes orfas
+    const avaToDel = avaliacoes.filter(av => av.clienteId && !pacientes.some(p => p.id === av.clienteId));
+    for (const av of avaToDel) {
+      await deleteDocument('avaliacoes', av.id);
+      count++;
+    }
+    // 5. Matriculas orfas
+    const matToDel = matriculas.filter(m => m.clienteId && !pacientes.some(p => p.id === m.clienteId));
+    for (const m of matToDel) {
+      await deleteDocument('matriculas', m.id);
+      count++;
+    }
+    alert(`Limpeza concluída! ${count} registros órfãos (antigos) foram apagados do banco.`);
+  };
+
   const resetData = async () => {
+
      console.warn("Reset data is disabled in production.");
   };
 
