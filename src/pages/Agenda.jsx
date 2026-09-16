@@ -403,49 +403,8 @@ export default function Agenda() {
     <div style={{ padding: '32px', height: '100vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', position: 'relative' }}>
       
               {/* Header and Controls */}
-        <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'flex-end' }}>
-            <div style={{ display: 'flex', gap: '24px' }}>
-                <div>
-                  <h1 style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px', marginTop: 0 }}>Agenda</h1>
-                </div>
-                {aniversariantes.length > 0 ? (
-                    <div style={{
-                        background: '#f2f5ed',
-                        borderRadius: '8px',
-                        padding: '12px 20px',
-                        minWidth: '360px',
-                        maxHeight: '240px',
-                        overflowY: 'auto',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        border: '1px solid var(--border-color)'
-                    }}>
-                       <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>
-                           Aniversariantes
-                       </div>
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                           {aniversariantes.map((a, i) => (
-                               <div key={i} style={{ fontSize: '1rem', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
-                                   <strong style={{ background: 'var(--primary-color)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>{a.dia.toString().padStart(2, '0')}</strong> 
-                                   <span>{a.nome.split(' ')[0]}</span>
-                               </div>
-                           ))}
-                       </div>
-                    </div>
-                ) : (
-                    <div style={{
-                        background: '#f8fafc',
-                        borderRadius: '8px',
-                        padding: '12px 20px',
-                        minWidth: '280px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '1px dashed var(--border-color)'
-                    }}>
-                        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>Nenhum aniversariante neste mês.</p>
-                    </div>
-                )}
-            </div>
+        <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+            
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '16px' }}>
               <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '4px' }}>
