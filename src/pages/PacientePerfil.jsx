@@ -92,7 +92,73 @@ export default function PacientePerfil() {
     }
   };
   
+
+  const handlePrintAvaliacao = (av, evolucoesVinc) => {
+    const printWindow = window.open('', '_blank');
+    const evolucoesHtml = evolucoesVinc.map(ev => `
+      <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+        <p><strong>Data:</strong> ${ev.data} - <strong>Profissional:</strong> ${ev.profissionalNome || 'Não informado'} ${ev.registro ? `(${ev.registro})` : ''}</p>
+        <p><strong>Evolução:</strong> ${ev.descricao || 'Sem descrição'}</p>
+        <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
+          <div style="border-top: 1px solid #000; width: 300px; text-align: center; padding-top: 5px;">
+            Assinatura / Carimbo do Profissional
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    const html = `
+      <html>
+        <head>
+          <title>Prontuário - Avaliação e Evoluções</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; line-height: 1.6; }
+            h1 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            .header-info { margin-bottom: 20px; }
+            .header-info p { margin: 5px 0; }
+            .section { margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+            .section h3 { margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+            @media print {
+              body { padding: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Ficha de Prontuário Fisioterapêutico</h1>
+          
+          <div class="header-info">
+            <p><strong>Paciente:</strong> ${paciente.nome}</p>
+            <p><strong>Data de Nascimento:</strong> ${paciente.dataNascimento || 'Não informado'} | <strong>Telefone:</strong> ${paciente.telefone || 'Não informado'}</p>
+            <p><strong>Data da Avaliação:</strong> ${av.data ? av.data.split('-').reverse().join('/') : 'N/A'}</p>
+          </div>
+
+          <div class="section">
+            <h3>Avaliação Inicial</h3>
+            <p><strong>Queixa Principal:</strong><br/>${av.queixaPrincipal || 'N/A'}</p>
+            <p><strong>Hábitos de Vida:</strong><br/>${av.habitosVida || 'N/A'}</p>
+            <p><strong>Testes Funcionais e Observações:</strong><br/>${av.expectativas || 'N/A'}</p>
+            <p><strong>Plano de Tratamento:</strong><br/>${av.planoTratamento || 'N/A'}</p>
+          </div>
+
+          <div class="section">
+            <h3>Histórico de Evoluções (${evolucoesVinc.length})</h3>
+            ${evolucoesHtml || '<p>Nenhuma evolução registrada para esta avaliação.</p>'}
+          </div>
+
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   const handleRemoveAnexo = (anexoId) => {
+
     if (window.confirm('Tem certeza que deseja excluir este anexo?')) {
       setAnexosList(prev => prev.filter(a => a.id !== anexoId));
     }
