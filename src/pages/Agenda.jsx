@@ -400,10 +400,10 @@ export default function Agenda() {
   };
 
   return (
-    <div style={{ padding: '32px', height: '100vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', position: 'relative' }}>
+    <div style={{ padding: '8px 32px 32px 32px', height: '100vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', position: 'relative' }}>
       
               {/* Header and Controls */}
-        <div className="flex-between" style={{ marginBottom: '24px', alignItems: 'center' }}>
+        <div className="flex-between" style={{ marginBottom: '12px', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <button onClick={goToday} style={{ padding: '8px 16px', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'white', cursor: 'pointer', fontWeight: 600, color: 'var(--text-dark)' }}>Hoje</button>
               <div style={{ display: 'flex', alignItems: 'center', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden' }}>
