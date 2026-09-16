@@ -39,6 +39,7 @@ export default function Agenda() {
   
   // Agendamento form states
   const [tipoAgendamento, setTipoAgendamento] = useState('Normal');
+  const [justificativaBloqueio, setJustificativaBloqueio] = useState('');
   const [isRecorrente, setIsRecorrente] = useState(false);
   const [diasRecorrencia, setDiasRecorrencia] = useState([]);
   const [semanasRecorrencia, setSemanasRecorrencia] = useState(4);
@@ -248,7 +249,7 @@ export default function Agenda() {
                     horaFim: horaFim,
                     clienteId: null,
                     matriculaId: null,
-                    nomePacienteNovo: 'Bloqueio',
+                    nomePacienteNovo: justificativaBloqueio ? 'Bloqueio - ' + justificativaBloqueio : 'Bloqueio',
                     telefonePacienteNovo: null,
                     servicoId: null,
                     profissionalId,
@@ -268,7 +269,7 @@ export default function Agenda() {
               horaFim: horaFim,
               clienteId: null,
               matriculaId: null,
-              nomePacienteNovo: 'Bloqueio',
+              nomePacienteNovo: justificativaBloqueio ? 'Bloqueio - ' + justificativaBloqueio : 'Bloqueio',
               telefonePacienteNovo: null,
               servicoId: null,
               profissionalId,
@@ -815,6 +816,16 @@ export default function Agenda() {
 
             {tipoAgendamento === 'bloqueio' && (
               <div style={{ marginTop: '16px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '16px' }}>
+                <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Justificativa do Bloqueio (Opcional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Almoço, Reunião, Feriado..." 
+                    value={justificativaBloqueio} 
+                    onChange={(e) => setJustificativaBloqueio(e.target.value)} 
+                    style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} 
+                  />
+                </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-dark)', cursor: 'pointer' }}>
                   <input type="checkbox" checked={isRecorrente} onChange={(e) => setIsRecorrente(e.target.checked)} style={{ accentColor: 'var(--primary-color)' }} />
                   Bloqueio Recorrente?
