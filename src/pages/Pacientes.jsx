@@ -6,7 +6,7 @@ import AvaliacaoWizardModal from '../components/AvaliacaoWizardModal';
 import { maskCpf, maskTelefone, maskCep } from '../utils/masks';
 
 export default function Pacientes() {
-  const { pacientes, addPaciente, setPacientes, updatePaciente } = useAppData();
+  const { pacientes, addPaciente, setPacientes, updatePaciente, deletePaciente } = useAppData();
   const [novoClienteModalOpen, setNovoClienteModalOpen] = useState(false);
   const [wizardModalOpen, setWizardModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
