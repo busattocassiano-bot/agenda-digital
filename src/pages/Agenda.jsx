@@ -149,7 +149,7 @@ export default function Agenda() {
     days = [currentDate];
   } else {
     // semana
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
     for (let i = 0; i < 7; i++) {
       days.push(addDays(weekStart, i));
     }
@@ -158,8 +158,8 @@ export default function Agenda() {
   // Generate month days
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const monthGridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const monthGridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const monthGridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const monthGridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
   const monthDays = eachDayOfInterval({ start: monthGridStart, end: monthGridEnd });
 
   // Generate time slots based on companyData or fallback
@@ -498,7 +498,7 @@ export default function Agenda() {
         <div className="card" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column' }}>
           {/* Days of Week Header */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid var(--border-color)', background: '#f8fafc' }}>
-            {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
+            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
               <div key={d} style={{ padding: '12px', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)', fontSize: '0.9rem' }}>{d}</div>
             ))}
           </div>
@@ -582,7 +582,7 @@ export default function Agenda() {
                     background: isSameDay(day, new Date()) ? '#f8fafc' : 'white',
                     width: `calc(100% / ${days.length})`
                   }}>
-                    <div style={{ fontWeight: 600, color: feriado ? '#ef4444' : 'var(--text-dark)', fontSize: '0.95rem' }}>{format(day, 'EEEE', { locale: ptBR }).split('-')[0]}</div>
+                    <div style={{ fontWeight: 600, color: feriado ? '#ef4444' : 'var(--text-dark)', fontSize: '0.95rem', textTransform: 'capitalize' }}>{format(day, 'EEEE', { locale: ptBR }).split('-')[0]}</div>
                     <div style={{ fontWeight: 400, color: feriado ? '#f87171' : 'var(--text-muted)', fontSize: '0.85rem' }}>{format(day, 'dd/MMM.', { locale: ptBR })}</div>
                     {feriado && (
                       <div style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 700, marginTop: '4px' }}>{feriado.nome}</div>
