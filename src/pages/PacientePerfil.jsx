@@ -764,12 +764,20 @@ export default function PacientePerfil() {
                           <div style={{ marginBottom: '8px', fontSize: '0.9rem' }}><strong>Testes Funcionais e Observações:</strong> <div style={{marginTop: '4px'}} dangerouslySetInnerHTML={{ __html: av.expectativas || 'N/A' }}></div></div>
                           <div style={{ fontSize: '0.9rem', marginBottom: '12px' }}><strong>Plano de Tratamento:</strong> <div style={{marginTop: '4px'}} dangerouslySetInnerHTML={{ __html: av.planoTratamento || 'N/A' }}></div></div>
                           
-                          <button 
-                            onClick={() => setExpandedAvaliacaoId(isExpanded ? null : av.id)}
-                            style={{ background: 'white', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', cursor: 'pointer' }}
-                          >
-                            {isExpanded ? 'Ocultar Evoluções' : `Ver Evoluções (${evolucoesVinculadas.length})`}
-                          </button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                              <button 
+                                onClick={() => setExpandedAvaliacaoId(isExpanded ? null : av.id)}
+                                style={{ background: 'white', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary-color)', cursor: 'pointer' }}
+                              >
+                                {isExpanded ? 'Ocultar Evoluções' : `Ver Evoluções (${evolucoesVinculadas.length})`}
+                              </button>
+                              <button 
+                                onClick={() => handlePrintAvaliacao(av, evolucoesVinculadas)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--primary-color)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, color: 'white', cursor: 'pointer' }}
+                              >
+                                <Printer size={16} /> Imprimir Prontuário
+                              </button>
+                            </div>
                         </div>
                         
                         {isExpanded && (
