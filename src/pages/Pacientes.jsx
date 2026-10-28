@@ -12,6 +12,7 @@ export default function Pacientes() {
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showInativos, setShowInativos] = useState(false);
+  const [ordem, setOrdem] = useState(() => localStorage.getItem('ordemPacientes') || 'az');
   const navigate = useNavigate();
   
   // Form states
@@ -139,6 +140,9 @@ export default function Pacientes() {
 
     return matchesSearch && matchesStatus;
   });
+  if (ordem !== 'cadastro') {
+    filteredPacientes.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR', { sensitivity: 'base' }) * (ordem === 'za' ? -1 : 1));
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -174,12 +178,23 @@ export default function Pacientes() {
       <div className="card" style={{ padding: '24px' }}>
         <div className="flex-between" style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '1.25rem', margin: 0, color: '#1e293b' }}>Lista de Clientes</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <select
+            value={ordem}
+            onChange={(e) => { setOrdem(e.target.value); localStorage.setItem('ordemPacientes', e.target.value); }}
+            style={{ padding: '9px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontWeight: 600, color: 'var(--text-main)', background: 'white', cursor: 'pointer' }}
+          >
+            <option value="az">Ordem: A → Z</option>
+            <option value="za">Ordem: Z → A</option>
+            <option value="cadastro">Ordem de cadastro</option>
+          </select>
           <button 
             onClick={() => setWizardModalOpen(true)}
             style={{ background: '#0ea5e9', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
           >
             <Plus size={18} /> Novo Cliente
           </button>
+          </div>
         </div>
 
         {/* Tabela de Clientes */}
