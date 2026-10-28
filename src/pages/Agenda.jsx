@@ -12,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { useAppData } from '../context/AppDataContext';
 import { useCompany } from '../context/CompanyContext';
 import { checkOverlapsAndCapacity } from '../utils/agendamentoUtils';
+import PacienteAutocomplete from '../components/PacienteAutocomplete';
 import AvaliacaoWizardModal from '../components/AvaliacaoWizardModal';
 
 export default function Agenda() {
@@ -769,10 +770,7 @@ export default function Agenda() {
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dark)' }}>Cliente</label>
                     </div>
-                    <select style={{ padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px' }} value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-                      <option value="">Selecione o Cliente...</option>
-                      {pacientes.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                    </select>
+                    <PacienteAutocomplete pacientes={pacientes} value={clienteId} onChange={setClienteId} />
                   </div>
                   {clienteId && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
