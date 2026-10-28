@@ -594,7 +594,8 @@ export default function Agenda() {
                           }}
                           onClick={() => handleOpenSlot(day, time)}
                         >
-                          {!feriado && slotAgendamentos.map(a => {
+                          {!feriado && slotAgendamentos.map((a, idx) => {
+                              const nCols = slotAgendamentos.length;
                               const srv = servicos.find(s => s.id === a.servicoId);
                               let baseColor = a.tipo === 'bloqueio' ? '#94a3b8' : (srv?.cor || '#0ea5e9');
                               if (a.status === 'Realizado') baseColor = '#22c55e';
@@ -634,7 +635,8 @@ export default function Agenda() {
                                       position: 'absolute',
                                       top: `${topOffset + 4}px`,
                                       height: `${calculatedHeight - 8}px`,
-                                      width: 'calc(100% - 10px)',
+                                      left: `calc(4px + ${idx} * ((100% - 8px) / ${nCols}))`,
+                                      width: `calc((100% - 8px) / ${nCols} - 2px)`,
                                       zIndex: 5,
                                       overflow: 'hidden'
                                   }}
