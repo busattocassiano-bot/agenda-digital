@@ -540,7 +540,12 @@ export default function PacientePerfil() {
                         
                         return (
                           <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                            <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500 }}>{m.modalidade || m.servico}</td>
+                            <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500 }}>
+                              <div>{m.modalidade || m.servico}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                ID: {m.id} • {(agendamentos || []).filter(a => String(a.matriculaId) === String(m.id)).length} agendamentos
+                              </div>
+                            </td>
                             <td style={{ padding: '16px', color: 'var(--text-main)' }}>{m.plano}</td>
                             <td style={{ padding: '16px', color: 'var(--text-main)' }}>{m.valor || 'R$ 0,00'}</td>
                             <td style={{ padding: '16px', color: 'var(--text-main)' }}>{m.dataInicio ? m.dataInicio.split('-').reverse().join('/') : '-'}</td>

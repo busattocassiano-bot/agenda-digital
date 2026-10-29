@@ -7,7 +7,7 @@ import { confirmarSeDuplicado } from '../utils/duplicados';
 import { maskCpf, maskTelefone, maskCep } from '../utils/masks';
 
 export default function Pacientes() {
-  const { pacientes, addPaciente, setPacientes, updatePaciente, deletePaciente } = useAppData();
+  const { pacientes, addPaciente, setPacientes, updatePaciente, deletePaciente, agendamentos, matriculas, evolucoes } = useAppData();
   const [novoClienteModalOpen, setNovoClienteModalOpen] = useState(false);
   const [wizardModalOpen, setWizardModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -217,7 +217,27 @@ export default function Pacientes() {
               <tbody>
                 {filteredPacientes.map((paciente) => (
                   <tr key={paciente.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500 }}>{paciente.nome}</td>
+                    <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500 }}>
+                      <div>{paciente.nome}</div>
+                      {(() => {
+                        const mats = (matriculas || []).filter(m => String(m.pacienteId) === String(paciente.id) || String(m.clienteId) === String(paciente.id));
+                        const ags = (agendamentos || []).filter(a => String(a.clienteId) === String(paciente.id) || String(a.pacienteId) === String(paciente.id));
+                        const realizados = ags.filter(a => a.status === 'Realizado').length;
+                        const evs = (evolucoes || []).filter(e => String(e.clienteId) === String(paciente.id) || ags.some(a => String(a.id) === String(e.idAgendamento))).length;
+                        return (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px', fontSize: '0.75rem' }}>
+                            <span style={{ background: ags.length > 0 ? '#e0f2fe' : '#f1f5f9', color: ags.length > 0 ? '#0369a1' : '#64748b', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>
+                              Agenda: {ags.length} ({realizados} realizados / {evs} evoluções)
+                            </span>
+                            {mats.map(m => (
+                              <span key={m.id} style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '999px' }}>
+                                Matrícula ID: {m.id}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td style={{ padding: '16px', color: 'var(--text-main)' }}>{paciente.telefone}</td>
                     <td style={{ padding: '16px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                       <button onClick={() => openEditModal(paciente)} style={{ background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '6px', color: '#0ea5e9', cursor: 'pointer' }} title="Editar"><Edit size={16} /></button>

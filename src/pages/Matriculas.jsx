@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, FileSpreadsheet, Plus, RefreshCw, Edit, X, User, Clock, Check } from 'lucide-react';
+import { Search, Filter, FileSpreadsheet, Plus, RefreshCw, Edit, X, User, Clock, Check, Trash2 } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
 import NovaMatriculaModal from '../components/NovaMatriculaModal';
 
 export default function Matriculas() {
-  const { pacientes, matriculas, servicos, planos, addMatricula, addRecebimento, profissionais, addAgendamento } = useAppData();
+  const { pacientes, matriculas, servicos, planos, addMatricula, addRecebimento, profissionais, addAgendamento, agendamentos, deleteMatricula } = useAppData();
   const [modalOpen, setModalOpen] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -86,6 +86,7 @@ export default function Matriculas() {
                   <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.85rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plano</th>
                   <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.85rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data Início</th>
                   <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.85rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
+                  <th style={{ padding: '16px', fontWeight: 600, fontSize: '0.85rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,7 +97,20 @@ export default function Matriculas() {
 
                   return (
                     <tr key={matricula.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500, fontSize: '0.95rem' }}>{nomeAluno}</td>
+                      <td style={{ padding: '16px', color: 'var(--text-dark)', fontWeight: 500, fontSize: '0.95rem' }}>
+                        <div>{nomeAluno}</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px', fontSize: '0.75rem' }}>
+                          <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '999px' }}>ID: {matricula.id}</span>
+                          <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '999px', fontWeight: 600 }}>
+                            Agenda: {(agendamentos || []).filter(a => String(a.matriculaId) === String(matricula.id)).length} agendamentos
+                          </span>
+                          {!p && (
+                            <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+                              ⚠️ Paciente excluído (sobrando)
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td style={{ padding: '16px', color: 'var(--text-main)', fontSize: '0.95rem' }}>{matricula.modalidade || matricula.servico || '-'}</td>
                       <td style={{ padding: '16px', color: 'var(--text-main)', fontSize: '0.95rem' }}>{matricula.plano || '-'}</td>
                       <td style={{ padding: '16px', color: 'var(--text-main)', fontSize: '0.95rem' }}>{matricula.dataInicio ? matricula.dataInicio.split('-').reverse().join('/') : '-'}</td>
@@ -104,6 +118,15 @@ export default function Matriculas() {
                         <span style={{ background: isAtiva ? '#dcfce7' : '#f1f5f9', color: isAtiva ? '#166534' : '#475569', padding: '4px 12px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
                           {matricula.status ? matricula.status.charAt(0).toUpperCase() + matricula.status.slice(1).toLowerCase() : 'Ativa'}
                         </span>
+                      </td>
+                      <td style={{ padding: '16px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => { if (window.confirm('Tem certeza que deseja excluir esta matrícula e seus agendamentos/cobranças vinculados?')) deleteMatricula(matricula.id); }}
+                          style={{ background: '#fef2f2', border: 'none', padding: '8px', borderRadius: '6px', color: '#ef4444', cursor: 'pointer' }}
+                          title="Excluir Matrícula"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </td>
                     </tr>
                   );

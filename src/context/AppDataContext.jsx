@@ -80,15 +80,18 @@ export function AppDataProvider({ children }) {
     // Apagar paciente
     await deleteDocument('pacientes', id);
     // Apagar agendamentos vinculados
-    agendamentos.filter(a => a.clienteId === id).forEach(a => deleteDocument('agendamentos', a.id));
+    const matchId = (item) => String(item.clienteId) === String(id) || String(item.pacienteId) === String(id);
+    const agendsDoPaciente = agendamentos.filter(matchId);
+    const agendIds = new Set(agendsDoPaciente.map(a => String(a.id)));
+    agendsDoPaciente.forEach(a => deleteDocument('agendamentos', a.id));
     // Apagar evolucoes vinculadas
-    evolucoes.filter(e => e.clienteId === id).forEach(e => deleteDocument('evolucoes', e.id));
+    evolucoes.filter(e => matchId(e) || agendIds.has(String(e.idAgendamento))).forEach(e => deleteDocument('evolucoes', e.id));
     // Apagar matriculas vinculadas
-    matriculas.filter(m => m.clienteId === id).forEach(m => deleteDocument('matriculas', m.id));
+    matriculas.filter(matchId).forEach(m => deleteDocument('matriculas', m.id));
     // Apagar avaliacoes vinculadas
-    avaliacoes.filter(av => av.clienteId === id).forEach(av => deleteDocument('avaliacoes', av.id));
+    avaliacoes.filter(matchId).forEach(av => deleteDocument('avaliacoes', av.id));
     // Apagar recebimentos vinculados
-    recebimentos.filter(r => r.clienteId === id).forEach(r => deleteDocument('recebimentos', r.id));
+    recebimentos.filter(matchId).forEach(r => deleteDocument('recebimentos', r.id));
   };
 
   const addProfissional = (profissional) => addDocument('profissionais', profissional);
@@ -120,6 +123,12 @@ export function AppDataProvider({ children }) {
 
   const addMatricula = async (matricula) => await addDocument('matriculas', matricula);
   const updateMatricula = (id, data) => updateDocument('matriculas', id, data);
+  const deleteMatricula = async (id) => {
+    await deleteDocument('matriculas', id);
+    agendamentos.filter(a => String(a.matriculaId) === String(id)).forEach(a => deleteDocument('agendamentos', a.id));
+    avaliacoes.filter(av => String(av.matriculaId) === String(id)).forEach(av => deleteDocument('avaliacoes', av.id));
+    recebimentos.filter(r => String(r.matriculaId) === String(id)).forEach(r => deleteDocument('recebimentos', r.id));
+  };
 
   const addAvaliacao = (avaliacao) => addDocument('avaliacoes', avaliacao);
 
@@ -147,7 +156,7 @@ export function AppDataProvider({ children }) {
       servicos, addServico, setServicos, updateServico,
       agendamentos, addAgendamento, updateAgendamento, deleteAgendamento, setAgendamentos,
       evolucoes, addEvolucao, updateEvolucao,
-      matriculas, addMatricula, updateMatricula,
+      matriculas, addMatricula, updateMatricula, deleteMatricula,
       avaliacoes, addAvaliacao,
       recebimentos, addRecebimento, updateRecebimento, setRecebimentos, deleteRecebimento,
       despesas, addDespesa, updateDespesa, setDespesas, deleteDespesa,
