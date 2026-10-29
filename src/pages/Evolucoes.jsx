@@ -53,6 +53,9 @@ export default function Evolucoes() {
   const combinedList = useMemo(() => {
     const pAgendamentos = agendamentos.filter(a => {
       if (a.servico === 'Reposição' || a.tipo === 'Reposicao') return false;
+      if (a.tipo === 'bloqueio' || a.status === 'Bloqueio') return false;
+      // Ignora agendamentos órfãos cujo paciente cadastrado já foi excluído
+      if (a.clienteId && !pacientes.some(p => String(p.id) === String(a.clienteId))) return false;
       
       const srv = servicos.find(s => s.id === a.servicoId || s.nome === a.servico);
       const requiresEvolucao = srv ? (srv.exigeEvolucao !== undefined ? srv.exigeEvolucao : !srv.nome.toLowerCase().includes('avalia')) : true;
@@ -139,7 +142,7 @@ export default function Evolucoes() {
     full.sort((a, b) => b.dataParsed - a.dataParsed);
 
     return full;
-  }, [agendamentos, evolucoes, filterCliente, filterProfissional, filterStatus, activeDataInicial, activeDataFinal]);
+  }, [agendamentos, evolucoes, pacientes, servicos, filterCliente, filterProfissional, filterStatus, activeDataInicial, activeDataFinal]);
 
   const openModal = (item) => {
     setSelectedItem(item);
@@ -276,7 +279,7 @@ export default function Evolucoes() {
                 </tr>
               ) : (
                 combinedList.map((item, idx) => {
-                  const clienteNome = item.evolucao ? item.evolucao.clienteNome : (item.agendamento?.nomeNaoCadastrado || pacientes.find(p => p.id === item.agendamento?.clienteId)?.nome);
+                  const clienteNome = item.evolucao ? item.evolucao.clienteNome : (item.agendamento?.nomePacienteNovo || item.agendamento?.nomeNaoCadastrado || pacientes.find(p => p.id === item.agendamento?.clienteId)?.nome);
                   const dataStr = item.evolucao ? item.evolucao.data : item.agendamento?.data.split('-').reverse().join('/');
                   const profNome = item.evolucao ? item.evolucao.profissionalNome : profissionais.find(p => p.id === item.agendamento?.profissionalId)?.nome;
                   const servico = item.agendamento ? (servicos.find(s => s.id === item.agendamento.servicoId)?.nome || item.agendamento.servico) : item.evolucao?.registro;
@@ -370,7 +373,7 @@ export default function Evolucoes() {
               {/* Left Column */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', textAlign: 'center', fontWeight: 700 }}>
-                  {selectedItem.evolucao ? selectedItem.evolucao.clienteNome : (selectedItem.agendamento?.nomeNaoCadastrado || pacientes.find(p => p.id === selectedItem.agendamento?.clienteId)?.nome)}
+                  {selectedItem.evolucao ? selectedItem.evolucao.clienteNome : (selectedItem.agendamento?.nomePacienteNovo || selectedItem.agendamento?.nomeNaoCadastrado || pacientes.find(p => p.id === selectedItem.agendamento?.clienteId)?.nome)}
                 </h3>
                 
                 <div style={{ display: 'flex', gap: '16px' }}>
