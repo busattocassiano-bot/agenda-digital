@@ -107,6 +107,25 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   };
 
   const [isEditingCadastro, setIsEditingCadastro] = useState(!clienteId);
+  const [isSaving, setIsSaving] = useState(false);
+  const savingRef = React.useRef(false);
+
+  // Verifica se já existe paciente com mesmo nome, telefone ou CPF (ignora o próprio paciente em edição)
+  const confirmarSeDuplicado = () => {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const digits = (s) => (s || '').replace(/\D/g, '');
+    const nome = norm(pacienteData.nome);
+    const tel = digits(pacienteData.telefone);
+    const cpf = digits(pacienteData.cpf);
+    const motivos = [];
+    pacientes.filter(p => p.id !== clienteId).forEach(p => {
+      if (nome && norm(p.nome) === nome) motivos.push(`• Mesmo NOME: ${p.nome}`);
+      else if (cpf.length === 11 && digits(p.cpf) === cpf) motivos.push(`• Mesmo CPF: ${p.nome} (${p.cpf})`);
+      else if (tel.length >= 10 && digits(p.telefone) === tel) motivos.push(`• Mesmo TELEFONE: ${p.nome} (${p.telefone})`);
+    });
+    if (!motivos.length) return true;
+    return window.confirm(`⚠️ Atenção! Já existe paciente cadastrado parecido:\n\n${motivos.slice(0, 5).join('\n')}\n\nDeseja cadastrar mesmo assim?`);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -279,6 +298,20 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   };
 
   const concluirFluxo = async (comMatricula) => {
+    // Trava contra cliques repetidos
+    if (savingRef.current) return;
+    if (!clienteId && !confirmarSeDuplicado()) return;
+    savingRef.current = true;
+    setIsSaving(true);
+    try {
+      await concluirFluxoInterno(comMatricula);
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
+    }
+  };
+
+  const concluirFluxoInterno = async (comMatricula) => {
     // 1. Criar Paciente (ou atualizar existente)
     let finalPacienteId = clienteId;
     let finalPacienteNome = pacienteData.nome;
@@ -967,8 +1000,8 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
         <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-color)', background: '#f8fafc' }}>
           <div>
             {step === 3 && (
-              <button onClick={handleSkipMatricula} style={{ background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer' }}>
-                Pular Matrícula e Salvar
+              <button onClick={handleSkipMatricula} disabled={isSaving} style={{ background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: isSaving ? 'wait' : 'pointer', opacity: isSaving ? 0.6 : 1 }}>
+                {isSaving ? 'Salvando…' : 'Pular Matrícula e Salvar'}
               </button>
             )}
           </div>
@@ -984,8 +1017,8 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
                 Próximo Passo <ChevronRight size={18} />
               </button>
             ) : (
-              <button onClick={handleFinish} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer' }}>
-                Salvar Tudo e Finalizar
+              <button onClick={handleFinish} disabled={isSaving} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: isSaving ? '#86efac' : '#22c55e', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: isSaving ? 'wait' : 'pointer' }}>
+                {isSaving ? 'Salvando…' : 'Salvar Tudo e Finalizar'}
               </button>
             )}
           </div>
