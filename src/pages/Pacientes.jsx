@@ -3,6 +3,7 @@ import { Search, Download, Trash2, Plus, RefreshCw, X, Calendar, Save, Edit, Fil
 import { useNavigate } from 'react-router-dom';
 import { useAppData } from '../context/AppDataContext';
 import AvaliacaoWizardModal from '../components/AvaliacaoWizardModal';
+import { confirmarSeDuplicado } from '../utils/duplicados';
 import { maskCpf, maskTelefone, maskCep } from '../utils/masks';
 
 export default function Pacientes() {
@@ -38,16 +39,7 @@ export default function Pacientes() {
       if (editingId) {
         updatePaciente(editingId, pacienteObj);
       } else {
-        // Aviso de possível cadastro duplicado (nome, CPF ou telefone)
-        const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
-        const digits = (s) => (s || '').replace(/\D/g, '');
-        const motivos = [];
-        pacientes.forEach(p => {
-          if (norm(p.nome) === norm(nome)) motivos.push(`• Mesmo NOME: ${p.nome}`);
-          else if (digits(cpf).length === 11 && digits(p.cpf) === digits(cpf)) motivos.push(`• Mesmo CPF: ${p.nome} (${p.cpf})`);
-          else if (digits(telefone).length >= 10 && digits(p.telefone) === digits(telefone)) motivos.push(`• Mesmo TELEFONE: ${p.nome} (${p.telefone})`);
-        });
-        if (motivos.length && !window.confirm(`⚠️ Atenção! Já existe paciente cadastrado parecido:\n\n${motivos.slice(0, 5).join('\n')}\n\nDeseja cadastrar mesmo assim?`)) return;
+        if (!confirmarSeDuplicado(pacientes, { nome, telefone, cpf })) return;
         addPaciente(pacienteObj);
       }
       closeModal();

@@ -13,6 +13,7 @@ import { useAppData } from '../context/AppDataContext';
 import { useCompany } from '../context/CompanyContext';
 import { checkOverlapsAndCapacity } from '../utils/agendamentoUtils';
 import PacienteAutocomplete from '../components/PacienteAutocomplete';
+import { confirmarSeDuplicado } from '../utils/duplicados';
 import AvaliacaoWizardModal from '../components/AvaliacaoWizardModal';
 
 export default function Agenda() {
@@ -292,6 +293,8 @@ export default function Agenda() {
             return;
         }
         finalPacienteNome = nomePacienteNovo;
+        if (!confirmarSeDuplicado(pacientes, { nome: nomePacienteNovo, telefone: telefonePacienteNovo }, null,
+            'Se for a mesma pessoa, cancele, desmarque "Paciente não cadastrado" e busque pelo nome.\n\n')) return;
     } else {
         if (!clienteId) {
             alert("Selecione um cliente.");

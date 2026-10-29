@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, ChevronRight, User, Stethoscope, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAppData } from '../context/AppDataContext';
+import { confirmarSeDuplicado } from '../utils/duplicados';
 import { maskCpf, maskTelefone, maskCep } from '../utils/masks';
 import { checkOverlapsAndCapacity } from '../utils/agendamentoUtils';
 import RichTextEditor from './RichTextEditor';
@@ -110,22 +111,8 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   const [isSaving, setIsSaving] = useState(false);
   const savingRef = React.useRef(false);
 
-  // Verifica se já existe paciente com mesmo nome, telefone ou CPF (ignora o próprio paciente em edição)
-  const confirmarSeDuplicado = () => {
-    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
-    const digits = (s) => (s || '').replace(/\D/g, '');
-    const nome = norm(pacienteData.nome);
-    const tel = digits(pacienteData.telefone);
-    const cpf = digits(pacienteData.cpf);
-    const motivos = [];
-    pacientes.filter(p => p.id !== clienteId).forEach(p => {
-      if (nome && norm(p.nome) === nome) motivos.push(`• Mesmo NOME: ${p.nome}`);
-      else if (cpf.length === 11 && digits(p.cpf) === cpf) motivos.push(`• Mesmo CPF: ${p.nome} (${p.cpf})`);
-      else if (tel.length >= 10 && digits(p.telefone) === tel) motivos.push(`• Mesmo TELEFONE: ${p.nome} (${p.telefone})`);
-    });
-    if (!motivos.length) return true;
-    return window.confirm(`⚠️ Atenção! Já existe paciente cadastrado parecido:\n\n${motivos.slice(0, 5).join('\n')}\n\nDeseja cadastrar mesmo assim?`);
-  };
+  // (verificação de duplicados: ver utils/duplicados.js)
+
 
   useEffect(() => {
     if (isOpen) {
@@ -209,6 +196,9 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   if (!isOpen) return null;
 
   const handleNext = () => {
+    // Ao sair da etapa CADASTRO, avisa se já existe paciente parecido (nome, telefone ou CPF)
+    if (step === 1 && (!clienteId || isEditingCadastro) && !confirmarSeDuplicado(pacientes, pacienteData, clienteId,
+        'Se for a mesma pessoa, cancele e use o cadastro existente.\n\n')) return;
     setStep(step + 1);
   };
 
@@ -300,7 +290,6 @@ function AvaliacaoWizardModalInner({ isOpen, onClose, agendamentoId, clienteId, 
   const concluirFluxo = async (comMatricula) => {
     // Trava contra cliques repetidos
     if (savingRef.current) return;
-    if (!clienteId && !confirmarSeDuplicado()) return;
     savingRef.current = true;
     setIsSaving(true);
     try {
