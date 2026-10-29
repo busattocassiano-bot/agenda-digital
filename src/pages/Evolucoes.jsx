@@ -279,7 +279,7 @@ export default function Evolucoes() {
                   const clienteNome = item.evolucao ? item.evolucao.clienteNome : (item.agendamento?.nomeNaoCadastrado || pacientes.find(p => p.id === item.agendamento?.clienteId)?.nome);
                   const dataStr = item.evolucao ? item.evolucao.data : item.agendamento?.data.split('-').reverse().join('/');
                   const profNome = item.evolucao ? item.evolucao.profissionalNome : profissionais.find(p => p.id === item.agendamento?.profissionalId)?.nome;
-                  const servico = item.agendamento ? item.agendamento.servico : item.evolucao?.registro;
+                  const servico = item.agendamento ? (servicos.find(s => s.id === item.agendamento.servicoId)?.nome || item.agendamento.servico) : item.evolucao?.registro;
                   
                   const hasEvolucao = !!item.evolucao;
                   
@@ -392,7 +392,7 @@ export default function Evolucoes() {
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '8px' }}>Serviço</label>
                     <input 
                       type="text" 
-                      value={selectedItem.agendamento ? selectedItem.agendamento.servico : '-'}
+                      value={selectedItem.agendamento ? (servicos.find(s => s.id === selectedItem.agendamento.servicoId)?.nome || selectedItem.agendamento.servico || '-') : '-'}
                       disabled
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', outline: 'none', color: 'var(--text-muted)', fontSize: '0.95rem', background: '#f8fafc' }} 
                     />

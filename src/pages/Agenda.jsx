@@ -330,6 +330,7 @@ export default function Agenda() {
         nomePacienteNovo: isPacienteNaoCadastrado ? nomePacienteNovo : null,
         telefonePacienteNovo: isPacienteNaoCadastrado ? telefonePacienteNovo : null,
         servicoId,
+        servico: srv ? srv.nome : '',
         profissionalId,
         tipo: 'Agendamento',
         status: 'Agendado'
